@@ -5,7 +5,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from io import BytesIO
-from docx import Document
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -201,41 +200,36 @@ def run_operational_simulation(window_hours, lam, c_servers, limit, walkins, pay
     env.run(until=sim_duration)
     return time_stamps, queue_loads, crashes_count, payment_failures, physical_tickets, section_lockouts, effective_servers
 
-# --- FUNCTION TO GENERATE WORD DOCUMENT ---
-def create_word_report(crashes, pay_fails, phys_tickets, sec_locks, total_loss):
-    doc = Document()
-    doc.add_heading('تقرير مشروع التخرج: نظام محاكاة وحل مشاكل التسجيل في كلية جدة العالمية', 0)
-    
-    doc.add_heading('1. خلفية المشكلة التشغيلية', level=1)
-    doc.add_paragraph(
-        'تواجه عمادة القبول والتسجيل في كلية جدة العالمية (JIC) تحديات تشغيلية خلال فترات الذروة لتسجيل المواد الدراسية، '
-        'تتمثل في ضغط هائل على البوابة الإلكترونية يترتب عليه تعليق النظام، وتأخر مزامنة عمليات السداد المالي، '
-        'وتوافد أكثر من 200 طالب يومياً للحصول على أرقام انتظار يدوية، فضلاً عن أزمة انغلاق الشعب الدراسية.'
-    )
-    
-    doc.add_heading('2. التحليل الرياضي ونظرية الطوابير (M/M/c)', level=1)
-    doc.add_paragraph(
-        'تم نمذجة النظام باستخدام نظرية الطوابير وتوزيع بواسون العشوائي لمعدل وصول الطلاب (Lambda)، '
-        'وإدارة العمليات عبر خوادم متوازية (c) لضمان استقرار النظام وعدم تجاوز كثافة المرور (Rho).'
-    )
-    
-    doc.add_heading('3. النتائج والمؤشرات التشغيلية', level=1)
-    doc.add_paragraph(f'- حالات تعليق الموقع المسجلة: {crashes}')
-    doc.add_paragraph(f'- أخطاء مزامنة الدفع المعلق: {pay_fails}')
-    doc.add_paragraph(f'- تذاكر الانتظار اليدوية اليومية: {phys_tickets} تذكرة')
-    doc.add_paragraph(f'- الشعب الدراسية المغلقة: {sec_locks}')
-    doc.add_paragraph(f'- إجمالي الهدر المالي التشغيلي: {total_loss:,.2f} ريال سعودي')
-    
-    doc.add_heading('4. الحلول الهندسية الاستراتيجية المقترحة', level=1)
-    doc.add_paragraph('1. إلغاء الطوابير الفعلية: تطوير بوابة خدمة ذاتية رقمية تصفّر عدد تذاكر الانتظار اليومية.')
-    doc.add_paragraph('2. أتمتة مزامنة المدفوعات: ربط البوابة المالية بقاعدة البيانات لتحديث حالة السداد لحظياً عبر Webhook.')
-    doc.add_paragraph('3. موازنة الأحمال السحابية: توسيع سعة الخوادم تلقائياً أوقات الذروة لمنع تعليق الموقع.')
-    doc.add_paragraph('4. التخصيص الاستباقي للشعب: استخدام خوارزميات تنبؤية لفتح الشعب مسبقاً قبل بدء نافذة التسجيل.')
-    
-    buffer = BytesIO()
-    doc.save(buffer)
-    buffer.seek(0)
-    return buffer
+# --- FUNCTION TO GENERATE REPORT TEXT (WORD COMPATIBLE) ---
+def generate_report_text(crashes, pay_fails, phys_tickets, sec_locks, total_loss):
+    report_content = f"""
+تقرير مشروع التخرج: نظام محاكاة وحل مشاكل التسجيل والعمليات الأكاديمية
+كلية جدة العالمية (JIC)
+
+1. خلفية المشكلة التشغيلية:
+تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية جوهرية خلال فترات الذروة لتسجيل المواد الدراسية. 
+تتمثل هذه المشاكل في ضغط هائل ومفاجئ على البوابة الإلكترونية يترتب عليه تعليق النظام وسقوط الخوادم، 
+فضلاً عن تأخر مزامنة عمليات السداد المالي، وتوافد أكثر من 200 طالب يومياً للحصول على أرقام انتظار يدوية، 
+ناهيك عن أزمة انغلاق الشعب الدراسية التي تهدد التأخر الأكاديمي للطلاب.
+
+2. التحليل الرياضي ونظرية الطوابير (M/M/c):
+تم صياغة المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم. حيث يُنمذج وصول الطلاب عبر توزيع بواسون العشوائي 
+بمعدل وصول (Lambda)، وتُدار العمليات عبر خوادم سحابية متوازية (c) لضمان استقرار النظام وعدم تجاوز كثافة المرور (Rho).
+
+3. النتائج والمؤشرات التشغيلية الحالية:
+- حالات تعليق الموقع المسجلة: {crashes}
+- أخطاء مزامنة الدفع المعلق: {pay_fails}
+- تذاكر الانتظار اليدوية اليومية: {phys_tickets} تذكرة
+- الشعب الدراسية المغلقة: {sec_locks}
+- إجمالي الهدر المالي التشغيلي: {total_loss:,.2f} ريال سعودي
+
+4. الحلول الهندسية الاستراتيجية المقترحة:
+1. القضاء التام على أرقام الانتظار الفعلية: تطوير بوابة خدمة ذاتية رقمية تصفّر عدد تذاكر الانتظار اليومية.
+2. أتمتة مزامنة المدفوعات: ربط البوابة المالية بقاعدة البيانات لتحديث حالة السداد لحظياً عبر Webhook.
+3. موازنة الأحمال السحابية الديناميكية: توزيع الأحمال على خوادم متعددة وقت الذروة لمنع تعليق الموقع وسقوط السيرفرات.
+4. التخصيص الذكي والتنبؤ بالسعة: استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً.
+"""
+    return report_content.strip()
 
 # --- EXECUTION BUTTON ---
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
@@ -351,21 +345,21 @@ if run_sim_btn:
         st.pyplot(fig)
         
         st.markdown("---")
-        st.markdown("### تحميل التقرير الرسمي لمشروع التخرج (Word)")
+        st.markdown("### تحميل تقرير المشروع الرسمي (Word / Text)")
         
-        word_file = create_word_report(crashes, pay_fails, phys_tickets, sec_locks, total_operational_loss)
+        report_text = generate_report_text(crashes, pay_fails, phys_tickets, sec_locks, total_operational_loss)
         st.download_button(
-            label="تحميل التقرير الخطي التنفيذي الشامل (ملف Word .docx)",
-            data=word_file,
-            file_name="JIC_Academic_Registration_Report.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            label="تحميل التقرير الخطي التنفيذي الشامل (ملف مستند رسمي .txt جاهز للفتح والنسخ لوورد)",
+            data=report_text,
+            file_name="JIC_Academic_Registration_Report.txt",
+            mime="text/plain"
         )
         
-        st.success("تم تنفيذ المحاكاة بنجاح وتجهيز تقرير الوورد الرسمي للتحميل الفوري!")
+        st.success("تم تنفيذ المحاكاة بنجاح وتجهيز التقرير التنفيذي للتحميل الفوري!")
 else:
     st.markdown("""
         <div style="text-align: center; padding: 50px; background: #FFFFFF; border-radius: 12px; border: 1px solid #CED4DA;">
             <h3 style="color: #000000;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
-            <p style="color: #333333;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج وتنزيل تقرير الوورد الرسمي.</p>
+            <p style="color: #333333;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج وتنزيل التقرير الرسمي.</p>
         </div>
     """, unsafe_allow_html=True)
