@@ -42,6 +42,14 @@ st.markdown("""
         margin-bottom: 15px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
+    .solution-box {
+        background: #F1F8FF !important;
+        border-right: 4px solid #0D6EFD !important;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
     h1, h2, h3, h4, h5, h6, p, label, span, div {
         color: #212529 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -233,7 +241,7 @@ if run_sim_btn:
         e2.metric("خسائر تعليق السيرفرات والطوارئ", f"{system_downtime_loss:,.2f} ريال")
         e3.metric("إجمالي الهدر المالي التشغيلي", f"{total_operational_loss:,.2f} ريال")
 
-        # --- SECTION 4: TABLES ---
+        # --- SECTION 4: TABLES & DETAILED SOLUTIONS ---
         st.markdown("### جدول مطابقة المشكلات الواقعية بالحلول الهندسية")
         col_q1, col_q2 = st.columns(2)
         
@@ -251,6 +259,24 @@ if run_sim_btn:
                 "القيمة المحسوبة": [f"{arrival_rate / (active_c * 6.0):.3f}", f"{(avg_queue / active_c)*100:.1f}%", f"{max(1, int(avg_queue*0.5))} دقيقة", "محسوب وآمن" if platform_upgrade else "حرج وعالي"]
             })
             st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+
+        # --- DETAILED EXPLANATION UNDER THE PROPOSED SOLUTIONS ---
+        st.markdown("""
+        <div class="solution-box">
+            <h4 style="color: #0D6EFD !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h4>
+            <p><b>1. القضاء التام على أرقام الانتظار الفعلية (تحويل الطوابير المادية إلى رقمية ذاتية):</b></p>
+            <p>من خلال تفعيل منصة الخدمة الذاتية الموحدة، يتم تمكين الطالب من إنهاء كافة إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي دون الحاجة لزيارة مبنى الكلية، مما يصفر عدد تذاكر الانتظار اليومية ويوفر مئات ساعات العمل المهدرة على الموظفين والطلاب.</p>
+            
+            <p><b>2. الأتمتة اللحظية لمزامنة المدفوعات (Real-time Payment Webhook Integration):</b></p>
+            <p>ربط البوابة المالية مباشرة بقاعدة بيانات التسجيل الأكاديمي عبر بروتوكولات مطابقة فورية، مما يمنع تعليق الحوالات المالية، يلغي الحاجة للتدقيق المحاسبي اليدوي، ويضمن ظهور حالة السداد في حساب الطالب فور إتمام العملية.</p>
+            
+            <p><b>3. التوسع السحابي الديناميكي لمواجهة الاختناقات (Dynamic Cloud Load Balancing):</b></p>
+            <p>تطبيق نموذج بحوث العمليات لتوزيع الأحمال على خوادم متعددة (Parallel Servers [c]) وقت ذروة التسجيل، مما يرفع السعة الاستيعابية ويمنع حدوث حالات تجمد أو تعليق في الموقع مهما بلغ حجم الضغط المفاجئ من الطلاب.</p>
+            
+            <p><b>4. التخصيص الذكي والتنبؤ المسبق بالسعة (Proactive Section Allocation):</b></p>
+            <p>استخدام خوارزميات تحليل البيانات التاريخية لتوقع المواد ذات الطلب العالي وفتح شعب إضافية مسبقاً قبل بدء نافذة التسجيل، مما يمنع تكدس الطلاب ويقضي تماماً على مشكلة انغلاق الشعب الدراسية بوجه الطلاب المستهدفين بالتخرج.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # --- SECTION 5: CHARTS ---
         st.markdown("---")
@@ -302,8 +328,8 @@ if run_sim_btn:
         st.success("تم تنفيذ المحاكاة بنجاح وتوثيق كافة القوانين الإحصائية والمالية باللغة العربية!")
 else:
     st.markdown("""
-        <div style="text-align: center; padding: 50px; background: #f8f9fa; border-radius: 12px; border: 1px solid #ced4da;">
+        <div style="text-align: center; padding: 50px; background: #f8F9FA; border-radius: 12px; border: 1px solid #CED4DA;">
             <h3 style="color: #495057;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
-            <p style="color: #6c757d;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج والتحليلات الإحصائية.</p>
+            <p style="color: #6C757D;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج والتحليلات الإحصائية.</p>
         </div>
     """, unsafe_allow_html=True)
