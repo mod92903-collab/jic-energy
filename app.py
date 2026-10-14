@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- FORCED PURE WHITE & BLACK CSS THEME ---
+# --- FORCED PURE WHITE & BLACK CSS THEME (NO DARK BOXES) ---
 st.markdown("""
     <style>
     .stApp {
@@ -47,29 +47,30 @@ st.markdown("""
         border: 2px solid #0D6EFD !important;
         padding: 25px;
         border-radius: 10px;
-        margin-top: 20px;
+        margin-top: 30px;
         margin-bottom: 25px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     .solution-box {
         background: #FFFFFF !important;
-        border: 2px solid #198754 !important;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-        margin-bottom: 20px;
+        border: 2px solid #0D6EFD !important;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 25px;
+        margin-bottom: 25px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     .stat-law-card {
         background: #F8F9FA !important;
         border-right: 3px solid #0D6EFD !important;
-        padding: 12px;
+        padding: 15px;
         border-radius: 6px;
         margin-top: 10px;
         margin-bottom: 15px;
-        font-size: 0.95rem;
+        font-size: 1.0rem;
+        color: #000000 !important;
     }
-    h1, h2, h3, h4, h5, h6, p, label, span, div {
+    h1, h2, h3, h4, h5, h6, p, label, span, div, li {
         color: #000000 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
@@ -128,27 +129,6 @@ st.markdown("""
     <p style="margin-top: 8px; font-size: 1.0rem;">
         مشروع تخرج في الهندسة الصناعية • بحوث العمليات ونظرية الطوابير M/M/c • القضاء على الطوابير الفعلية وأخطاء النظام
     </p>
-</div>
-""", unsafe_allow_html=True)
-
-# --- WRITTEN REPORT SECTION (ADDED INSIDE THE SITE) ---
-st.markdown("""
-<div class="report-box">
-    <h3 style="color: #0D6EFD !important; margin-top: 0;">التقرير الخطي التنفيذي: دراسة المشكلة والحلول الهندسية</h3>
-    
-    <h4 style="color: #333333 !important; margin-top: 15px;">1. خلفية المشكلة التشغيلية في كلية جدة العالمية (JIC):</h4>
-    <p>تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية جوهرية خلال فترات الذروة لتسجيل المواد الدراسية. تتمثل هذه المشاكل في ضغط هائل ومفاجئ على البوابة الإلكترونية يترتب عليه تعليق النظام وسقوط الخوادم، فضلاً عن تأخر مزامنة عمليات السداد المالي مما يدخل الطالب في دوامة مراجعات معلقة. ونتيجة لهذه الاختناقات الرقمية، يتوافد يومياً أكثر من 200 طالب إلى مبنى الكلية للحصول على أرقام انتظار يدوية بهدف حل مشاكلهم، ناهيك عن أزمة انغلاق الشعب الدراسية التي تهدد التأخر الأكاديمي للطلاب المحتمل تخرجهم.</p>
-    
-    <h4 style="color: #333333 !important; margin-top: 15px;">2. التحليل الهندسي باستخدام بحوث العمليات ونظرية الطوابير:</h4>
-    <p>تم صياغة هذه المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم (M/M/c Queueing Model). حيث يُنمذج وصول الطلاب عبر توزيع بواسون العشوائي بمعدل وصول (Lambda)، وتُدار العمليات عبر خوادم سحابية متوازية (c). أثبت التحليل أن النظام التقليدي يفتقر إلى مرونة توزيع الأحمال، مما يؤدي إلى ارتفاع كثافة المرور (Rho > 1) وتكدس الطوابير المادية والرقمية بشكل غير مستدام.</p>
-    
-    <h4 style="color: #333333 !important; margin-top: 15px;">3. الحلول الهندسية الاستراتيجية المقترحة:</h4>
-    <ul>
-        <li><b>إلغاء الطوابير الفعلية (Zero Walk-in Queues):</b> تطوير بوابة خدمة ذاتية رقمية متكاملة تتيح إنهاء كافة إجراءات التسجيل عن بعد، مما يصفر عدد تذاكر الانتظار اليومية (200 تذكرة) ويوفر مئات ساعات العمل المهدرة.</li>
-        <li><b>أتمتة مزامنة المدفوعات (Real-time Webhook Integration):</b> ربط البوابة المالية بقاعدة البيانات الأكاديمية لتحديث حالة السداد لحظياً، منعاً لتراكم الحوالات المعلقة.</li>
-        <li><b>موازنة الأحمال السحابية الديناميكية (Dynamic Load Balancing):</b> توسيع سعة الخوادم تلقائياً أوقات الذروة لمنع تعليق الموقع وتحقيق الاستقرار النظامي.</li>
-        <li><b>التخصيص الاستباقي للشعب (Proactive Section Allocation):</b> خوارزميات تنبؤية لفتح الشعب الدراسية مسبقاً بناءً على تاريخ الأعداد الطلابية، قضاءً على أزمة الشعب المغلقة.</li>
-    </ul>
 </div>
 """, unsafe_allow_html=True)
 
@@ -260,7 +240,7 @@ if run_sim_btn:
         system_downtime_loss = crashes * 5000
         total_operational_loss = total_walkin_cost + system_downtime_loss
 
-        # --- SECTION 1: KPIS WITH EMBEDDED STATISTICAL LAWS ---
+        # --- SECTION 1: KPIS ---
         st.markdown("### مؤشرات الأداء التشغيلي الرئيسية للمنصة")
         
         k1, k2, k3, k4, k5, k6 = st.columns(6)
@@ -273,14 +253,13 @@ if run_sim_btn:
 
         st.markdown("""
         <div class="stat-law-card">
-            <b>القانون الإحصائي المستخدم (توزيع بواسون ونظرية الطوابير M/M/c):</b> 
-            يتم نمذجة وصول الطلاب بناءً على معدل الوصول المتسلسل $\\lambda$ وفق توزيع بواسون: 
-            <i>P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}</i>، 
-            بينما تُدار طوابير الانتظار عبر خوادم متوازية ($c$) لقياس كفاءة التدفق وزمن الانتظار.
+            <b>النموذج الإحصائي المستخدم (توزيع بواسون للوصول ونظرية الطوابير M/M/c):</b> 
+            يتم نمذجة تدفق الطلاب عبر معدل الوصول العشوائي <b>(&lambda;)</b> وفق توزيع بواسون المحسوب لتقدير كفاءة الخوادم المتوازية (c).
         </div>
         """, unsafe_allow_html=True)
+        st.latex(r"P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}")
 
-        # --- SECTION 2: FINANCIAL COST ANALYSIS WITH EMBEDDED STAT LAW ---
+        # --- SECTION 2: FINANCIAL COST ANALYSIS ---
         st.markdown("### تحليل التكاليف التشغيلية والخسائر المالية (بالريال السعودي)")
         
         e1, e2, e3 = st.columns(3)
@@ -290,14 +269,13 @@ if run_sim_btn:
 
         st.markdown("""
         <div class="stat-law-card">
-            <b>القانون الإحصائي المستخدم (اختبار الفرضيات وتقدير القيمة المتوقعة - Expected Value):</b> 
-            تُحسب التكاليف الإجمالية عبر ضرب عدد حوادث الفشل أو الزيارات في التكلفة المتوسطة لكل حالة: 
-            <i>E(Cost) = \\sum (n_i \\times Cost_i)</i>، 
-            لمقارنة الوضع قبل وبعد الأتمتة واختبار فرضية كفاءة الخفض المالي.
+            <b>النموذج الإحصائي المستخدم (حساب القيمة المتوقعة للخسائر التشغيلية):</b> 
+            تُحسب التكلفة الإجمالية بضرب عدد حوادث الفشل أو الزيارات في التكلفة التشغيلية المتوسطة لكل حالة.
         </div>
         """, unsafe_allow_html=True)
+        st.latex(r"E(\text{Total Cost}) = \sum (n_i \times \text{Cost}_i)")
 
-        # --- SECTION 3: TABLES & DETAILED SOLUTIONS ---
+        # --- SECTION 3: TABLES ---
         st.markdown("### جدول مطابقة المشكلات الواقعية بالحلول الهندسية")
         col_q1, col_q2 = st.columns(2)
         
@@ -319,17 +297,17 @@ if run_sim_btn:
 
         st.markdown("""
         <div class="stat-law-card">
-            <b>القانون الإحصائي المستخدم (كثافة حركة المرور واستقرار النظام - Traffic Intensity $\\rho$):</b> 
-            تُحسب كثافة الاستخدام بالمعادلة: 
-            <i>$\\rho = \\frac{\\lambda}{c \\cdot \\mu}$</i> 
-            حيث تمثل $\\lambda$ معدل الوصول، $c$ عدد البوابات، و $\\mu$ معدل الخدمة. يشترط إحصائياً أن تكون $\\rho < 1$ لضمان استقرار النظام وعدم تكدس الطابور.
+            <b>النموذج الإحصائي المستخدم (معامل كثافة حركة المرور واستقرار النظام):</b> 
+            لضمان استقرار الخوادم وعدم تكدس الطوابير، يشترط أن تكون كثافة الاستخدام أقل من الواحد الصحيح.
         </div>
         """, unsafe_allow_html=True)
+        st.latex(r"\rho = \frac{\lambda}{c \cdot \mu} < 1")
 
-        # --- DETAILED EXPLANATION UNDER THE PROPOSED SOLUTIONS ---
+        # --- DETAILED EXPLANATION UNDER THE PROPOSED SOLUTIONS (CLEAN WHITE) ---
         st.markdown("""
         <div class="solution-box">
-            <h4 style="color: #198754 !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h4>
+            <h3 style="color: #0D6EFD !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h3>
+            
             <p><b>1. القضاء التام على أرقام الانتظار الفعلية (تحويل الطوابير المادية إلى رقمية ذاتية):</b></p>
             <p>من خلال تفعيل منصة الخدمة الذاتية الموحدة، يتم تمكين الطالب من إنهاء كافة إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي دون الحاجة لزيارة مبنى الكلية، مما يصفر عدد تذاكر الانتظار اليومية ويوفر مئات ساعات العمل المهدرة على الموظفين والطلاب.</p>
             
@@ -373,8 +351,29 @@ if run_sim_btn:
         for spine in ax2.spines.values(): spine.set_color('#CED4DA')
 
         st.pyplot(fig)
+
+        # --- SECTION 5: WRITTEN REPORT (BOTTOM) ---
+        st.markdown("""
+        <div class="report-box">
+            <h3 style="color: #0D6EFD !important; margin-top: 0;">التقرير الخطي التنفيذي: دراسة المشكلة والحلول الهندسية</h3>
+            
+            <h4 style="color: #000000 !important; margin-top: 15px;">1. خلفية المشكلة التشغيلية في كلية جدة العالمية (JIC):</h4>
+            <p>تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية جوهرية خلال فترات الذروة لتسجيل المواد الدراسية. تتمثل هذه المشاكل في ضغط هائل ومفاجئ على البوابة الإلكترونية يترتب عليه تعليق النظام وسقوط الخوادم، فضلاً عن تأخر مزامنة عمليات السداد المالي مما يدخل الطالب في دوامة مراجعات معلقة. ونتيجة لهذه الاختناقات الرقمية، يتوافد يومياً أكثر من 200 طالب إلى مبنى الكلية للحصول على أرقام انتظار يدوية بهدف حل مشاكلهم، ناهيك عن أزمة انغلاق الشعب الدراسية التي تهدد التأخر الأكاديمي للطلاب المحتمل تخرجهم.</p>
+            
+            <h4 style="color: #000000 !important; margin-top: 15px;">2. التحليل الهندسي باستخدام بحوث العمليات ونظرية الطوابير:</h4>
+            <p>تم صياغة هذه المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم (M/M/c Queueing Model). حيث يُنمذج وصول الطلاب عبر توزيع بواسون العشوائي بمعدل وصول (Lambda)، وتُدار العمليات عبر خوادم سحابية متوازية (c). أثبت التحليل أن النظام التقليدي يفتقر إلى مرونة توزيع الأحمال، مما يؤدي إلى ارتفاع كثافة المرور (Rho > 1) وتكدس الطوابير المادية والرقمية بشكل غير مستدام.</p>
+            
+            <h4 style="color: #000000 !important; margin-top: 15px;">3. الحلول الهندسية الاستراتيجية المقترحة:</h4>
+            <ul>
+                <li><b>إلغاء الطوابير الفعلية (Zero Walk-in Queues):</b> تطوير بوابة خدمة ذاتية رقمية متكاملة تتيح إنهاء كافة إجراءات التسجيل عن بعد، مما يصفر عدد تذاكر الانتظار اليومية (200 تذكرة) ويوفر مئات ساعات العمل المهدرة.</li>
+                <li><b>أتمتة مزامنة المدفوعات (Real-time Webhook Integration):</b> ربط البوابة المالية بقاعدة البيانات الأكاديمية لتحديث حالة السداد لحظياً، منعاً لتراكم الحوالات المعلقة.</li>
+                <li><b>موازنة الأحمال السحابية الديناميكية (Dynamic Load Balancing):</b> توسيع سعة الخوادم تلقائياً أوقات الذروة لمنع تعليق الموقع وتحقيق الاستقرار النظامي.</li>
+                <li><b>التخصيص الاستباقي للشعب (Proactive Section Allocation):</b> خوارزميات تنبؤية لفتح الشعب الدراسية مسبقاً بناءً على تاريخ الأعداد الطلابية، قضاءً على أزمة الشعب المغلقة.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # --- SECTION 5: EXPORT ---
+        # --- SECTION 6: EXPORT ---
         st.markdown("---")
         st.markdown("### تحميل تقرير المشروع الرسمي")
         export_df = pd.DataFrame({
