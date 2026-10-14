@@ -1,1 +1,1 @@
-# jic-energy
+# jic-app
