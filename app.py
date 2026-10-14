@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STRICT WHITE & BLUE THEME (NO DARK BOXES, BLUE ACCENTS) ---
+# --- STRICT WHITE & BLUE THEME ---
 st.markdown("""
     <style>
     .stApp, .main, div[data-testid="stVerticalBlock"], section[data-testid="stSidebar"] {
@@ -111,15 +111,14 @@ st.markdown("""
     <h1 style="margin:0; font-size: 2.2rem;">كلية جدة العالمية (JIC)</h1>
     <h3 style="margin-top: 5px; font-size: 1.3rem;">منصة بحوث العمليات ونظرية الطوابير لإدارة العمليات الأكاديمية</h3>
     <p style="margin-top: 8px; font-size: 1.0rem;">
-        تحليل طوابير الانتظار المادية (200+ تذكرة يومياً)، أخطاء مزامنة الدفع، السعة الاستيعابية للسيرفرات، والتكاليف التشغيلية للموظفين.
+        محاكاة تسجيل الطلاب، قياس الشعب المغلقة للطلاب المتأخرين، تذاكر الانتظار بسبب المشاكل التقنية، والسعة الاستيعابية للخوادم.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- ORGANIZED CONTROL PANEL (BLUE THEME) ---
+# --- ORGANIZED CONTROL PANEL ---
 st.markdown("### لوحة التحكم التشغيلية ومعلمات المحاكاة الرياضية")
 
-# Section 1: Demographics & Infrastructure
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الأول: أعداد الطلاب والبنية التحتية للخوادم</b>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
@@ -131,25 +130,22 @@ with col3:
     daily_registration_hours = st.slider("فترة نافذة التسجيل الحرجة (ساعات يومياً - من 8 ص إلى 4 عصراً)", 1, 8, 3, 1)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Section 2: Demand & Operations Research Parameters
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الثاني: معلمات بحوث العمليات ومعدلات الطلب (Lambda & Capacity)</b>", unsafe_allow_html=True)
 col4, col5, col6 = st.columns(3)
 with col4:
-    # Calculated scientific arrival rate based on student body and hours
     arrival_rate = st.slider("معدل وصول الطلاب [Lambda] (طالب/دقيقة وقت الذروة)", 10.0, 150.0, float(min(120.0, total_students / 60.0)), 5.0)
 with col5:
     system_capacity_limit = st.slider("حد التحميل الأقصى للسيرفرات (طلب/دقيقة قبل التعليق)", 30, 250, 80, 10)
 with col6:
-    daily_walkins = st.slider("أرقام الانتظار الفعلية للطلاب يومياً بشؤون الطلاب", 50, 400, 200, 10)
+    max_section_capacity = st.slider("السعة القصوى للمقاعد المتاحة في الشعب الدراسية", 200, 2000, 800, 50)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Section 3: Operational Risks & Staffing Costs
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الثالث: المخاطر التشغيلية وتكاليف الموظفين والرواتب</b>", unsafe_allow_html=True)
 col7, col8, col9 = st.columns(3)
 with col7:
-    payment_sync_risk = st.slider("نسبة أخطاء مزامنة الدفع المعلق (%) [بناءً على ضغط الشبكة]", 1, 30, 15, 1)
+    tech_failure_rate = st.slider("نسبة الطلاب الذين واجهوا مشاكل تقنية واضطروا لأخذ تذكرة انتظار (%)", 1, 20, 8, 1)
 with col8:
     staff_count = st.slider("عدد موظفي الدعم وشؤون الطلاب المخصصين للتدقيق اليدوي", 2, 20, 8, 1)
 with col9:
@@ -157,9 +153,9 @@ with col9:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- SIMULATION CORE LOGIC ---
-def run_operational_simulation(hours, lam, c_servers, limit, walkins, pay_risk, staff):
+def run_operational_simulation(hours, lam, c_servers, limit, sec_cap, tech_risk, students):
     env = simpy.Environment()
-    sim_duration = hours * 60  # total minutes in daily window
+    sim_duration = hours * 60
     
     time_stamps = []
     queue_loads = []
@@ -169,9 +165,10 @@ def run_operational_simulation(hours, lam, c_servers, limit, walkins, pay_risk, 
     section_lockouts = 0
 
     server_pool = simpy.Resource(env, capacity=c_servers)
+    registered_count = 0
 
     def operational_process(env):
-        nonlocal crashes_count, payment_failures, physical_tickets, section_lockouts
+        nonlocal crashes_count, payment_failures, physical_tickets, section_lockouts, registered_count
         while True:
             current_time = env.now
             peak_factor = 1.0 + 2.5 * np.exp(-((current_time - (sim_duration*0.3))**2) / (2 * (sim_duration*0.15)**2))
@@ -184,9 +181,19 @@ def run_operational_simulation(hours, lam, c_servers, limit, walkins, pay_risk, 
             if current_load > limit:
                 crashes_count += 1
                 
-            payment_failures += int(current_load * (pay_risk / 100.0))
-            physical_tickets += int(walkins * (pay_risk / 15.0))
-            section_lockouts += int(current_load * 0.25)
+            # Realistic calculation based on your clarification
+            new_registrations = int(current_load * 2)
+            registered_count = min(students, registered_count + new_registrations)
+            
+            # Closed sections: students who couldn't register because sections reached capacity
+            if registered_count >= sec_cap:
+                section_lockouts = int((registered_count - sec_cap) * 0.4)
+            else:
+                section_lockouts = 0
+                
+            # Walk-in tickets: students who tried to register online but faced technical issues/crashes
+            physical_tickets = int((students - registered_count) * (tech_risk / 100.0) + (crashes_count * 3))
+            payment_failures = int(current_load * 0.1)
                 
             yield env.timeout(5)
 
@@ -202,8 +209,8 @@ def generate_report_text(crashes, pay_fails, phys_tickets, sec_locks, total_staf
 
 1. خلفية المشكلة التشغيلية:
 تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية خلال فترات الذروة لتسجيل المواد الدراسية. 
-تتمثل هذه المشاكل في ضغط هائل على البوابة الإلكترونية يترتب عليه تعليق النظام، وتأخر مزامنة عمليات السداد المالي، 
-وتوافد أكثر من 200 طالب يومياً للحصول على أرقام انتظار يدوية، فضلاً عن أزمة انغلاق الشعب الدراسية.
+تتمثل هذه المشاكل في ضغط هائل على البوابة الإلكترونية يترتب عليه تعليق النظام، وتأخر مزامنة عمليات السداد، 
+وتوافد الطلاب الذين واجهتهم مشاكل تقنية لأخذ تذاكر انتظار يدوية، فضلاً عن انغلاق الشعب الدراسية بوجه الطلاب المتأخرين.
 
 2. التحليل الرياضي ونظرية الطوابير (M/M/c):
 تم صياغة المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم بناءً على معدل الوصول (Lambda) وتوزيع بواسون، 
@@ -212,15 +219,14 @@ def generate_report_text(crashes, pay_fails, phys_tickets, sec_locks, total_staf
 3. النتائج والمؤشرات التشغيلية الحالية:
 - حالات تعليق الموقع وسقوط السيرفرات: {crashes}
 - أخطاء مزامنة الدفع المعلق: {pay_fails}
-- تذاكر الانتظار اليدوية اليومية: {phys_tickets} تذكرة
-- الشعب الدراسية المغلقة: {sec_locks}
-- تكلفة الموظفين المخصصين لمعالجة الأزمات يدوياً: {total_staff_cost:,.2f} ريال سعودي شهرياً
+- تذاكر الانتظار اليدوية (بسبب المشاكل التقنية): {phys_tickets} تذكرة
+- الشعب الدراسية المغلقة (للطلاب المتأخرين): {sec_locks} طالب متضرر
+- تكلفة الموظفين المخصصين لمعالجة الأزمات: {total_staff_cost:,.2f} ريال سعودي شهرياً
 
 4. الحلول الهندسية الاستراتيجية المقترحة:
-1. إلغاء الطوابير الفعلية: تطوير بوابة خدمة ذاتية رقمية تصفّر عدد تذاكر الانتظار اليومية (200 تذكرة).
+1. إلغاء الطوابير الفعلية: تطوير بوابة خدمة ذاتية رقمية تصفّر عدد تذاكر الانتظار الناتجة عن الأعطال.
 2. أتمتة مزامنة المدفوعات: ربط البوابة المالية بقاعدة البيانات لتحديث حالة السداد لحظياً عبر Webhook.
-3. موازنة الأحمال السحابية الديناميكية: توزيع الأحمال على خوادم متعددة وقت الذروة لمنع تعليق الموقع.
-4. التخصيص الاستباقي للشعب: استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً.
+3. التخصيص الاستباقي للشعب: استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً للقضاء على انغلاق الشعب.
 """
     return report_content.strip()
 
@@ -233,13 +239,12 @@ if run_sim_btn:
     with st.spinner("جاري حساب نماذج الطوابير الإحصائية وتحليل التكاليف التشغيلية..."):
         random.seed(101)
         timestamps, queues, crashes, pay_fails, phys_tickets, sec_locks = run_operational_simulation(
-            daily_registration_hours, arrival_rate, server_gateways, system_capacity_limit, daily_walkins, payment_sync_risk, staff_count
+            daily_registration_hours, arrival_rate, server_gateways, system_capacity_limit, max_section_capacity, tech_failure_rate, total_students
         )
         
         max_queue = max(queues) if queues else 0
         avg_queue = sum(queues) / len(queues) if queues else 0
         
-        # Financial calculation based on staff salaries
         total_monthly_staff_cost = staff_count * staff_monthly_salary
         system_downtime_loss = crashes * 3000
         total_operational_loss = total_monthly_staff_cost + system_downtime_loss
@@ -250,8 +255,8 @@ if run_sim_btn:
         k2.metric("أقصى ضغط طابور", f"{max_queue} طلب")
         k3.metric("حالات تعليق الموقع", f"{crashes}")
         k4.metric("أخطاء مزامنة الدفع", f"{pay_fails}")
-        k5.metric("تذاكر الانتظار اليومية", f"{phys_tickets} تذكرة")
-        k6.metric("الشعب المغلقة", f"{sec_locks}")
+        k5.metric("تذاكر الانتظار التقنية", f"{phys_tickets} تذكرة")
+        k6.metric("الشعب المغلقة", f"{sec_locks} طالب")
 
         st.markdown("""
         <div class="stat-law-card">
@@ -280,9 +285,9 @@ if run_sim_btn:
         
         with col_q1:
             stat_df = pd.DataFrame({
-                "المشكلة الواقعية في الكلية": ["أكثر من 200 رقم انتظار يومياً", "أخطاء مزامنة الدفع وعدم ظهورها", "تعليق الموقع وبطء الاستجابة", "انغلاق الشعب الدراسية بوجه الطالب"],
-                "السبب الجذري بحوث عمليات": ["فشل البوابة الرقمية والخوف الطلابي", "غياب الربط الفوري بقاعدة البيانات", "عجز سعة الخوادم المتزامنة [c]", "تخصيص الشعب بشكل ثابت تقليدي"],
-                "الحل الهندسي عبر المنصة الذكية": ["بوابة ذاتية تسجل 0 زيارة يدوية", "تكامل آلي فوري (Webhook)", "زيادة السعة السحابية الديناميكية", "تخصيص ذكي وتنبؤ مبكر بالطلب"]
+                "المشكلة الواقعية في الكلية": ["تذاكر الانتظار بسبب الأعطال التقنية", "أخطاء مزامنة الدفع المعلق", "تعليق الموقع وبطء الاستجابة", "انغلاق الشعب الدراسية لل متأخرين"],
+                "السبب الجذري بحوث عمليات": ["فشل البوابة الرقمية وسقوط السيرفرات", "غياب الربط الفوري بقاعدة البيانات", "عجز سعة الخوادم المتوازية [c]", "امتلاء السعة القصوى للمقاعد"],
+                "الحل الهندسي عبر المنصة الذكية": ["بوابة ذاتية تصفّر التذاكر التقنية", "تكامل آلي فوري (Webhook)", "زيادة السعة السحابية الديناميكية", "تخصيص ذكي وتنبؤ مبكر بالطلب"]
             })
             st.dataframe(stat_df, use_container_width=True, hide_index=True)
             
@@ -305,10 +310,10 @@ if run_sim_btn:
         st.markdown("""
         <div class="solution-box">
             <h3 style="color: #0D6EFD !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h3>
-            <p><b>1. القضاء التام على أرقام الانتظار الفعلية:</b> تمكين الطالب من إنهاء إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي لتصفير تذاكر الانتظار اليومية.</p>
+            <p><b>1. إلغاء تذاكر الانتظار التقنية:</b> تمكين الطالب من إنهاء إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي لمنع الهدر الناتج عن الأعطال.</p>
             <p><b>2. الأتمتة اللحظية لمزامنة المدفوعات:</b> ربط البوابة المالية مباشرة بقاعدة البيانات عبر Webhook لمنع تعليق الحوالات المالية.</p>
             <p><b>3. التوسع السحابي الديناميكي:</b> توزيع الأحمال على خوادم متعددة وقت الذروة لمنع تعليق الموقع وسقوط السيرفرات.</p>
-            <p><b>4. التخصيص الذكي والتنبؤ بالسعة:</b> استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً للقضاء على انغلاق الشعب.</p>
+            <p><b>4. التخصيص الذكي والتنبؤ بالسعة:</b> استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً للقضاء على انغلاق الشعب بوجه الطلاب المتأخرين.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -328,7 +333,7 @@ if run_sim_btn:
         ax1.legend(facecolor='#ffffff', labelcolor='#000000')
 
         ax2.set_facecolor('#ffffff')
-        categories = ['أخطاء الدفع', 'أرقام الانتظار اليدوية', 'الشعب المغلقة']
+        categories = ['أخطاء الدفع', 'تذاكر الانتظار التقنية', 'الشعب المغلقة']
         values = [pay_fails, phys_tickets, sec_locks]
         ax2.bar(categories, values, color=['#0D6EFD', '#6C757D', '#0DCAF0'], width=0.5)
         ax2.set_title("حجم الحالات المتضررة من المشاكل التشغيلية", color='#000000', fontsize=12)
