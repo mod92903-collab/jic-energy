@@ -4,6 +4,8 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from io import BytesIO
+from docx import Document
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -12,77 +14,59 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- FORCED PURE WHITE & BLACK CSS THEME (NO DARK BOXES) ---
+# --- STRICT WHITE CSS (NO DARK BOXES) ---
 st.markdown("""
     <style>
-    .stApp {
-        background-color: #FFFFFF !important;
-        direction: rtl;
-        text-align: right;
-    }
-    .main {
+    .stApp, .main, div[data-testid="stVerticalBlock"], section[data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         direction: rtl;
+        text-align: right;
+    }
+    h1, h2, h3, h4, h5, h6, p, label, span, div, li, strong, b {
+        color: #000000 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .hero-container {
-        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         border: 2px solid #0D6EFD !important;
         padding: 25px;
         border-radius: 12px;
         margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.08);
-        text-align: right;
+    }
+    .hero-container h1 {
+        color: #0D6EFD !important;
     }
     .control-section {
-        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         padding: 20px;
         border-radius: 10px;
         border: 1px solid #CED4DA !important;
         margin-bottom: 15px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-    }
-    .report-box {
-        background: #FFFFFF !important;
-        border: 2px solid #0D6EFD !important;
-        padding: 25px;
-        border-radius: 10px;
-        margin-top: 30px;
-        margin-bottom: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     .solution-box {
-        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         border: 2px solid #0D6EFD !important;
         padding: 25px;
         border-radius: 10px;
         margin-top: 25px;
         margin-bottom: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        color: #000000 !important;
     }
     .stat-law-card {
-        background: #F8F9FA !important;
+        background-color: #F8F9FA !important;
         border-right: 3px solid #0D6EFD !important;
         padding: 15px;
         border-radius: 6px;
         margin-top: 10px;
         margin-bottom: 15px;
-        font-size: 1.0rem;
         color: #000000 !important;
-    }
-    h1, h2, h3, h4, h5, h6, p, label, span, div, li {
-        color: #000000 !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .hero-container h1 {
-        color: #0D6EFD !important;
     }
     .stMetric {
-        background: #FFFFFF !important;
+        background-color: #FFFFFF !important;
         padding: 15px;
         border-radius: 10px;
         border: 1px solid #0D6EFD !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         text-align: center;
     }
     .stMetric label {
@@ -135,7 +119,6 @@ st.markdown("""
 # --- ORGANIZED CONTROL PANEL ---
 st.markdown("### لوحة التحكم التشغيلية ومعلمات المحاكاة")
 
-# Section 1: Infrastructure
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الأول: البنية التحتية والسعة الاستيعابية للخوادم</b>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
@@ -147,7 +130,6 @@ with col3:
     registration_window = st.slider("فترة نافذة التسجيل الحرجة (بالساعات)", 12, 72, 24, 6)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Section 2: Demand & Traffic
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الثاني: معدلات الطلب والوصول وحركة المرور</b>", unsafe_allow_html=True)
 col4, col5, col6 = st.columns(3)
@@ -159,7 +141,6 @@ with col6:
     daily_walkins = st.slider("عدد أرقام الانتظار الفعلية للطلاب يومياً بالمبنى", 50, 400, 200, 10)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Section 3: Operational Risks & Financial Costs
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الثالث: نسب المخاطر التشغيلية والتكاليف بالريال السعودي</b>", unsafe_allow_html=True)
 col7, col8, col9 = st.columns(3)
@@ -171,7 +152,6 @@ with col9:
     section_lockout_rate = st.slider("مخاطر انغلاق الشعب الدراسية (%)", 5, 50, 22, 2)
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Section 4: Smart Upgrade
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الرابع: تفعيل المنصة الذكية المقترحة</b>", unsafe_allow_html=True)
 col10, col11 = st.columns(2)
@@ -184,7 +164,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 # --- SIMULATION CORE LOGIC ---
 def run_operational_simulation(window_hours, lam, c_servers, limit, walkins, pay_risk, lockout_risk, is_upgraded, efficiency):
     env = simpy.Environment()
-    sim_duration = window_hours * 60  # minutes
+    sim_duration = window_hours * 60
     
     time_stamps = []
     queue_loads = []
@@ -221,6 +201,42 @@ def run_operational_simulation(window_hours, lam, c_servers, limit, walkins, pay
     env.run(until=sim_duration)
     return time_stamps, queue_loads, crashes_count, payment_failures, physical_tickets, section_lockouts, effective_servers
 
+# --- FUNCTION TO GENERATE WORD DOCUMENT ---
+def create_word_report(crashes, pay_fails, phys_tickets, sec_locks, total_loss):
+    doc = Document()
+    doc.add_heading('تقرير مشروع التخرج: نظام محاكاة وحل مشاكل التسجيل في كلية جدة العالمية', 0)
+    
+    doc.add_heading('1. خلفية المشكلة التشغيلية', level=1)
+    doc.add_paragraph(
+        'تواجه عمادة القبول والتسجيل في كلية جدة العالمية (JIC) تحديات تشغيلية خلال فترات الذروة لتسجيل المواد الدراسية، '
+        'تتمثل في ضغط هائل على البوابة الإلكترونية يترتب عليه تعليق النظام، وتأخر مزامنة عمليات السداد المالي، '
+        'وتوافد أكثر من 200 طالب يومياً للحصول على أرقام انتظار يدوية، فضلاً عن أزمة انغلاق الشعب الدراسية.'
+    )
+    
+    doc.add_heading('2. التحليل الرياضي ونظرية الطوابير (M/M/c)', level=1)
+    doc.add_paragraph(
+        'تم نمذجة النظام باستخدام نظرية الطوابير وتوزيع بواسون العشوائي لمعدل وصول الطلاب (Lambda)، '
+        'وإدارة العمليات عبر خوادم متوازية (c) لضمان استقرار النظام وعدم تجاوز كثافة المرور (Rho).'
+    )
+    
+    doc.add_heading('3. النتائج والمؤشرات التشغيلية', level=1)
+    doc.add_paragraph(f'- حالات تعليق الموقع المسجلة: {crashes}')
+    doc.add_paragraph(f'- أخطاء مزامنة الدفع المعلق: {pay_fails}')
+    doc.add_paragraph(f'- تذاكر الانتظار اليدوية اليومية: {phys_tickets} تذكرة')
+    doc.add_paragraph(f'- الشعب الدراسية المغلقة: {sec_locks}')
+    doc.add_paragraph(f'- إجمالي الهدر المالي التشغيلي: {total_loss:,.2f} ريال سعودي')
+    
+    doc.add_heading('4. الحلول الهندسية الاستراتيجية المقترحة', level=1)
+    doc.add_paragraph('1. إلغاء الطوابير الفعلية: تطوير بوابة خدمة ذاتية رقمية تصفّر عدد تذاكر الانتظار اليومية.')
+    doc.add_paragraph('2. أتمتة مزامنة المدفوعات: ربط البوابة المالية بقاعدة البيانات لتحديث حالة السداد لحظياً عبر Webhook.')
+    doc.add_paragraph('3. موازنة الأحمال السحابية: توسيع سعة الخوادم تلقائياً أوقات الذروة لمنع تعليق الموقع.')
+    doc.add_paragraph('4. التخصيص الاستباقي للشعب: استخدام خوارزميات تنبؤية لفتح الشعب مسبقاً قبل بدء نافذة التسجيل.')
+    
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
 # --- EXECUTION BUTTON ---
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
@@ -240,9 +256,7 @@ if run_sim_btn:
         system_downtime_loss = crashes * 5000
         total_operational_loss = total_walkin_cost + system_downtime_loss
 
-        # --- SECTION 1: KPIS ---
         st.markdown("### مؤشرات الأداء التشغيلي الرئيسية للمنصة")
-        
         k1, k2, k3, k4, k5, k6 = st.columns(6)
         k1.metric("البوابات النشطة [c]", f"{active_c}")
         k2.metric("أقصى ضغط طابور", f"{max_queue} طلب")
@@ -259,9 +273,7 @@ if run_sim_btn:
         """, unsafe_allow_html=True)
         st.latex(r"P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}")
 
-        # --- SECTION 2: FINANCIAL COST ANALYSIS ---
         st.markdown("### تحليل التكاليف التشغيلية والخسائر المالية (بالريال السعودي)")
-        
         e1, e2, e3 = st.columns(3)
         e1.metric("تكلفة زيارات الانتظار اليدوية", f"{total_walkin_cost:,.2f} ريال")
         e2.metric("خسائر تعليق السيرفرات والطوارئ", f"{system_downtime_loss:,.2f} ريال")
@@ -275,7 +287,6 @@ if run_sim_btn:
         """, unsafe_allow_html=True)
         st.latex(r"E(\text{Total Cost}) = \sum (n_i \times \text{Cost}_i)")
 
-        # --- SECTION 3: TABLES ---
         st.markdown("### جدول مطابقة المشكلات الواقعية بالحلول الهندسية")
         col_q1, col_q2 = st.columns(2)
         
@@ -303,29 +314,18 @@ if run_sim_btn:
         """, unsafe_allow_html=True)
         st.latex(r"\rho = \frac{\lambda}{c \cdot \mu} < 1")
 
-        # --- DETAILED EXPLANATION UNDER THE PROPOSED SOLUTIONS (CLEAN WHITE) ---
         st.markdown("""
         <div class="solution-box">
             <h3 style="color: #0D6EFD !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h3>
-            
-            <p><b>1. القضاء التام على أرقام الانتظار الفعلية (تحويل الطوابير المادية إلى رقمية ذاتية):</b></p>
-            <p>من خلال تفعيل منصة الخدمة الذاتية الموحدة، يتم تمكين الطالب من إنهاء كافة إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي دون الحاجة لزيارة مبنى الكلية، مما يصفر عدد تذاكر الانتظار اليومية ويوفر مئات ساعات العمل المهدرة على الموظفين والطلاب.</p>
-            
-            <p><b>2. الأتمتة اللحظية لمزامنة المدفوعات (Real-time Payment Webhook Integration):</b></p>
-            <p>ربط البوابة المالية مباشرة بقاعدة بيانات التسجيل الأكاديمي عبر بروتوكولات مطابقة فورية، مما يمنع تعليق الحوالات المالية، يلغي الحاجة للتدقيق المحاسبي اليدوي، ويضمن ظهور حالة السداد في حساب الطالب فور إتمام العملية.</p>
-            
-            <p><b>3. التوسع السحابي الديناميكي لمواجهة الاختناقات (Dynamic Cloud Load Balancing):</b></p>
-            <p>تطبيق نموذج بحوث العمليات لتوزيع الأحمال على خوادم متعددة (Parallel Servers [c]) وقت ذروة التسجيل، مما يرفع السعة الاستيعابية ويمنع حدوث حالات تجمد أو تعليق في الموقع مهما بلغ حجم الضغط المفاجئ من الطلاب.</p>
-            
-            <p><b>4. التخصيص الذكي والتنبؤ المسبق بالسعة (Proactive Section Allocation):</b></p>
-            <p>استخدام خوارزميات تحليل البيانات التاريخية لتوقع المواد ذات الطلب العالي وفتح شعب إضافية مسبقاً قبل بدء نافذة التسجيل، مما يمنع تكدس الطلاب ويقضي تماماً على مشكلة انغلاق الشعب الدراسية بوجه الطلاب المستهدفين بالتخرج.</p>
+            <p><b>1. القضاء التام على أرقام الانتظار الفعلية:</b> تمكين الطالب من إنهاء إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي لتصفير تذاكر الانتظار اليومية.</p>
+            <p><b>2. الأتمتة اللحظية لمزامنة المدفوعات:</b> ربط البوابة المالية مباشرة بقاعدة البيانات عبر Webhook لمنع تعليق الحوالات المالية.</p>
+            <p><b>3. التوسع السحابي الديناميكي:</b> توزيع الأحمال على خوادم متعددة وقت الذروة لمنع تعليق الموقع وسقوط السيرفرات.</p>
+            <p><b>4. التخصيص الذكي والتنبؤ بالسعة:</b> استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً للقضاء على انغلاق الشعب.</p>
         </div>
         """, unsafe_allow_html=True)
 
-        # --- SECTION 4: CHARTS ---
         st.markdown("---")
         st.markdown("### الرسوم البيانية لتحليل الضغط وحجم المعاناة")
-        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
         fig.patch.set_facecolor('#ffffff')
         
@@ -338,7 +338,6 @@ if run_sim_btn:
         ax1.tick_params(colors='#000000')
         ax1.grid(True, linestyle='--', alpha=0.3, color='#CED4DA')
         ax1.legend(facecolor='#ffffff', labelcolor='#000000')
-        for spine in ax1.spines.values(): spine.set_color('#CED4DA')
 
         ax2.set_facecolor('#ffffff')
         categories = ['أخطاء الدفع', 'أرقام الانتظار اليدوية', 'الشعب المغلقة']
@@ -348,53 +347,25 @@ if run_sim_btn:
         ax2.set_ylabel("إجمالي الحالات", color='#000000')
         ax2.tick_params(colors='#000000')
         ax2.grid(True, linestyle='--', alpha=0.3, color='#CED4DA')
-        for spine in ax2.spines.values(): spine.set_color('#CED4DA')
 
         st.pyplot(fig)
-
-        # --- SECTION 5: WRITTEN REPORT (BOTTOM) ---
-        st.markdown("""
-        <div class="report-box">
-            <h3 style="color: #0D6EFD !important; margin-top: 0;">التقرير الخطي التنفيذي: دراسة المشكلة والحلول الهندسية</h3>
-            
-            <h4 style="color: #000000 !important; margin-top: 15px;">1. خلفية المشكلة التشغيلية في كلية جدة العالمية (JIC):</h4>
-            <p>تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية جوهرية خلال فترات الذروة لتسجيل المواد الدراسية. تتمثل هذه المشاكل في ضغط هائل ومفاجئ على البوابة الإلكترونية يترتب عليه تعليق النظام وسقوط الخوادم، فضلاً عن تأخر مزامنة عمليات السداد المالي مما يدخل الطالب في دوامة مراجعات معلقة. ونتيجة لهذه الاختناقات الرقمية، يتوافد يومياً أكثر من 200 طالب إلى مبنى الكلية للحصول على أرقام انتظار يدوية بهدف حل مشاكلهم، ناهيك عن أزمة انغلاق الشعب الدراسية التي تهدد التأخر الأكاديمي للطلاب المحتمل تخرجهم.</p>
-            
-            <h4 style="color: #000000 !important; margin-top: 15px;">2. التحليل الهندسي باستخدام بحوث العمليات ونظرية الطوابير:</h4>
-            <p>تم صياغة هذه المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم (M/M/c Queueing Model). حيث يُنمذج وصول الطلاب عبر توزيع بواسون العشوائي بمعدل وصول (Lambda)، وتُدار العمليات عبر خوادم سحابية متوازية (c). أثبت التحليل أن النظام التقليدي يفتقر إلى مرونة توزيع الأحمال، مما يؤدي إلى ارتفاع كثافة المرور (Rho > 1) وتكدس الطوابير المادية والرقمية بشكل غير مستدام.</p>
-            
-            <h4 style="color: #000000 !important; margin-top: 15px;">3. الحلول الهندسية الاستراتيجية المقترحة:</h4>
-            <ul>
-                <li><b>إلغاء الطوابير الفعلية (Zero Walk-in Queues):</b> تطوير بوابة خدمة ذاتية رقمية متكاملة تتيح إنهاء كافة إجراءات التسجيل عن بعد، مما يصفر عدد تذاكر الانتظار اليومية (200 تذكرة) ويوفر مئات ساعات العمل المهدرة.</li>
-                <li><b>أتمتة مزامنة المدفوعات (Real-time Webhook Integration):</b> ربط البوابة المالية بقاعدة البيانات الأكاديمية لتحديث حالة السداد لحظياً، منعاً لتراكم الحوالات المعلقة.</li>
-                <li><b>موازنة الأحمال السحابية الديناميكية (Dynamic Load Balancing):</b> توسيع سعة الخوادم تلقائياً أوقات الذروة لمنع تعليق الموقع وتحقيق الاستقرار النظامي.</li>
-                <li><b>التخصيص الاستباقي للشعب (Proactive Section Allocation):</b> خوارزميات تنبؤية لفتح الشعب الدراسية مسبقاً بناءً على تاريخ الأعداد الطلابية، قضاءً على أزمة الشعب المغلقة.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
         
-        # --- SECTION 6: EXPORT ---
         st.markdown("---")
-        st.markdown("### تحميل تقرير المشروع الرسمي")
-        export_df = pd.DataFrame({
-            "الوقت_بالدقائق": timestamps,
-            "ضغط_الطابور": queues,
-            "أخطاء_الدفع": pay_fails,
-            "تذاكر_الانتظار": phys_tickets
-        })
-        csv_data = export_df.to_csv(index=False).encode('utf-8-sig')
+        st.markdown("### تحميل التقرير الرسمي لمشروع التخرج (Word)")
+        
+        word_file = create_word_report(crashes, pay_fails, phys_tickets, sec_locks, total_operational_loss)
         st.download_button(
-            label="تحميل تقرير المحاكاة والتحليل المالي بصيغة CSV",
-            data=csv_data,
-            file_name="JIC_Operational_Simulation_Report.csv",
-            mime="text/csv"
+            label="تحميل التقرير الخطي التنفيذي الشامل (ملف Word .docx)",
+            data=word_file,
+            file_name="JIC_Academic_Registration_Report.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
         
-        st.success("تم تنفيذ المحاكاة بنجاح وتوثيق كافة القوانين الإحصائية والمالية باللغة العربية!")
+        st.success("تم تنفيذ المحاكاة بنجاح وتجهيز تقرير الوورد الرسمي للتحميل الفوري!")
 else:
     st.markdown("""
         <div style="text-align: center; padding: 50px; background: #FFFFFF; border-radius: 12px; border: 1px solid #CED4DA;">
             <h3 style="color: #000000;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
-            <p style="color: #333333;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج والتحليلات الإحصائية.</p>
+            <p style="color: #333333;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج وتنزيل تقرير الوورد الرسمي.</p>
         </div>
     """, unsafe_allow_html=True)
