@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- FORCED PURE WHITE & BLACK CSS THEME (NO DARK BOXES) ---
+# --- FORCED PURE WHITE & BLACK CSS THEME ---
 st.markdown("""
     <style>
     .stApp {
@@ -42,14 +42,32 @@ st.markdown("""
         margin-bottom: 15px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
-    .solution-box {
+    .report-box {
         background: #FFFFFF !important;
         border: 2px solid #0D6EFD !important;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .solution-box {
+        background: #FFFFFF !important;
+        border: 2px solid #198754 !important;
         padding: 20px;
         border-radius: 8px;
         margin-top: 20px;
         margin-bottom: 20px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .stat-law-card {
+        background: #F8F9FA !important;
+        border-right: 3px solid #0D6EFD !important;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
     }
     h1, h2, h3, h4, h5, h6, p, label, span, div {
         color: #000000 !important;
@@ -58,7 +76,6 @@ st.markdown("""
     .hero-container h1 {
         color: #0D6EFD !important;
     }
-    /* Force all metrics boxes to be pure white with black text and clean border */
     .stMetric {
         background: #FFFFFF !important;
         padding: 15px;
@@ -88,7 +105,6 @@ st.markdown("""
         background-color: #0B5ED7 !important;
         color: #FFFFFF !important;
     }
-    /* DataFrame tables styling for clean white look */
     table {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -112,6 +128,27 @@ st.markdown("""
     <p style="margin-top: 8px; font-size: 1.0rem;">
         مشروع تخرج في الهندسة الصناعية • بحوث العمليات ونظرية الطوابير M/M/c • القضاء على الطوابير الفعلية وأخطاء النظام
     </p>
+</div>
+""", unsafe_allow_html=True)
+
+# --- WRITTEN REPORT SECTION (ADDED INSIDE THE SITE) ---
+st.markdown("""
+<div class="report-box">
+    <h3 style="color: #0D6EFD !important; margin-top: 0;">التقرير الخطي التنفيذي: دراسة المشكلة والحلول الهندسية</h3>
+    
+    <h4 style="color: #333333 !important; margin-top: 15px;">1. خلفية المشكلة التشغيلية في كلية جدة العالمية (JIC):</h4>
+    <p>تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية جوهرية خلال فترات الذروة لتسجيل المواد الدراسية. تتمثل هذه المشاكل في ضغط هائل ومفاجئ على البوابة الإلكترونية يترتب عليه تعليق النظام وسقوط الخوادم، فضلاً عن تأخر مزامنة عمليات السداد المالي مما يدخل الطالب في دوامة مراجعات معلقة. ونتيجة لهذه الاختناقات الرقمية، يتوافد يومياً أكثر من 200 طالب إلى مبنى الكلية للحصول على أرقام انتظار يدوية بهدف حل مشاكلهم، ناهيك عن أزمة انغلاق الشعب الدراسية التي تهدد التأخر الأكاديمي للطلاب المحتمل تخرجهم.</p>
+    
+    <h4 style="color: #333333 !important; margin-top: 15px;">2. التحليل الهندسي باستخدام بحوث العمليات ونظرية الطوابير:</h4>
+    <p>تم صياغة هذه المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم (M/M/c Queueing Model). حيث يُنمذج وصول الطلاب عبر توزيع بواسون العشوائي بمعدل وصول (Lambda)، وتُدار العمليات عبر خوادم سحابية متوازية (c). أثبت التحليل أن النظام التقليدي يفتقر إلى مرونة توزيع الأحمال، مما يؤدي إلى ارتفاع كثافة المرور (Rho > 1) وتكدس الطوابير المادية والرقمية بشكل غير مستدام.</p>
+    
+    <h4 style="color: #333333 !important; margin-top: 15px;">3. الحلول الهندسية الاستراتيجية المقترحة:</h4>
+    <ul>
+        <li><b>إلغاء الطوابير الفعلية (Zero Walk-in Queues):</b> تطوير بوابة خدمة ذاتية رقمية متكاملة تتيح إنهاء كافة إجراءات التسجيل عن بعد، مما يصفر عدد تذاكر الانتظار اليومية (200 تذكرة) ويوفر مئات ساعات العمل المهدرة.</li>
+        <li><b>أتمتة مزامنة المدفوعات (Real-time Webhook Integration):</b> ربط البوابة المالية بقاعدة البيانات الأكاديمية لتحديث حالة السداد لحظياً، منعاً لتراكم الحوالات المعلقة.</li>
+        <li><b>موازنة الأحمال السحابية الديناميكية (Dynamic Load Balancing):</b> توسيع سعة الخوادم تلقائياً أوقات الذروة لمنع تعليق الموقع وتحقيق الاستقرار النظامي.</li>
+        <li><b>التخصيص الاستباقي للشعب (Proactive Section Allocation):</b> خوارزميات تنبؤية لفتح الشعب الدراسية مسبقاً بناءً على تاريخ الأعداد الطلابية، قضاءً على أزمة الشعب المغلقة.</li>
+    </ul>
 </div>
 """, unsafe_allow_html=True)
 
@@ -223,7 +260,7 @@ if run_sim_btn:
         system_downtime_loss = crashes * 5000
         total_operational_loss = total_walkin_cost + system_downtime_loss
 
-        # --- SECTION 1: KPIS ---
+        # --- SECTION 1: KPIS WITH EMBEDDED STATISTICAL LAWS ---
         st.markdown("### مؤشرات الأداء التشغيلي الرئيسية للمنصة")
         
         k1, k2, k3, k4, k5, k6 = st.columns(6)
@@ -234,23 +271,16 @@ if run_sim_btn:
         k5.metric("تذاكر الانتظار اليومية", f"{phys_tickets} تذكرة")
         k6.metric("الشعب المغلقة", f"{sec_locks}")
 
-        # --- SECTION 2: STATISTICAL LAWS MAPPING ---
-        st.markdown("### توثيق القوانين الإحصائية ونظرية الطوابير المستخدمة في النموذج")
         st.markdown("""
-        تم بناء هذه المحاكاة بالاعتماد على القوانين الرياضية والإحصائية التالية في الهندسة الصناعية وبحوث العمليات:
-        * **1. توزيع بواسون للوصول العشوائي (Poisson Process & Arrival Rate - Lambda):**
-          * *القانون:* $P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}$
-          * *الاستخدام:* يمثل معدل وصول الطلاب الباحثين عن تسجيل المواد في نفس اللحظة خلال فترات الذروة.
-        * **2. نموذج الطوابير متعدد الخوادم (M/M/c Queueing Model):**
-          * *القانون:* يعتمد على عدد الخوادم المتاحة ($c$) ومعدل الخدمة ($\mu$) لتقدير متوسط أوقات الانتظار وطول الطابور ($L_q, W_q$).
-        * **3. معامل كثافة حركة المرور واستقرار النظام (Traffic Intensity - Rho):**
-          * *القانون:* $\\rho = \\frac{\\lambda}{c \\cdot \\mu}$
-          * *الشرط التشغيلي:* يجب أن تكون $\\rho < 1$ لضمان استقرار الخوادم وعدم حدوث انهيار أو تعليق في النظام.
-        * **4. اختبار الفرضيات وحدود التحكم الإحصائية (Statistical Hypothesis Testing):**
-          * *الاستخدام:* مقارنة إجمالي الطلب مع حد السعة الأقصى لتحديد لحظة تجاوز الحدود وإطلاق غرامات وتكاليف التعطل.
-        """)
+        <div class="stat-law-card">
+            <b>القانون الإحصائي المستخدم (توزيع بواسون ونظرية الطوابير M/M/c):</b> 
+            يتم نمذجة وصول الطلاب بناءً على معدل الوصول المتسلسل $\\lambda$ وفق توزيع بواسون: 
+            <i>P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}</i>، 
+            بينما تُدار طوابير الانتظار عبر خوادم متوازية ($c$) لقياس كفاءة التدفق وزمن الانتظار.
+        </div>
+        """, unsafe_allow_html=True)
 
-        # --- SECTION 3: FINANCIAL COST ANALYSIS ---
+        # --- SECTION 2: FINANCIAL COST ANALYSIS WITH EMBEDDED STAT LAW ---
         st.markdown("### تحليل التكاليف التشغيلية والخسائر المالية (بالريال السعودي)")
         
         e1, e2, e3 = st.columns(3)
@@ -258,7 +288,16 @@ if run_sim_btn:
         e2.metric("خسائر تعليق السيرفرات والطوارئ", f"{system_downtime_loss:,.2f} ريال")
         e3.metric("إجمالي الهدر المالي التشغيلي", f"{total_operational_loss:,.2f} ريال")
 
-        # --- SECTION 4: TABLES & DETAILED SOLUTIONS ---
+        st.markdown("""
+        <div class="stat-law-card">
+            <b>القانون الإحصائي المستخدم (اختبار الفرضيات وتقدير القيمة المتوقعة - Expected Value):</b> 
+            تُحسب التكاليف الإجمالية عبر ضرب عدد حوادث الفشل أو الزيارات في التكلفة المتوسطة لكل حالة: 
+            <i>E(Cost) = \\sum (n_i \\times Cost_i)</i>، 
+            لمقارنة الوضع قبل وبعد الأتمتة واختبار فرضية كفاءة الخفض المالي.
+        </div>
+        """, unsafe_allow_html=True)
+
+        # --- SECTION 3: TABLES & DETAILED SOLUTIONS ---
         st.markdown("### جدول مطابقة المشكلات الواقعية بالحلول الهندسية")
         col_q1, col_q2 = st.columns(2)
         
@@ -271,16 +310,26 @@ if run_sim_btn:
             st.dataframe(stat_df, use_container_width=True, hide_index=True)
             
         with col_q2:
+            current_rho = arrival_rate / (active_c * 6.0)
             metrics_df = pd.DataFrame({
-                "مؤشر الأداء الرياضي": ["كثافة حركة المرور [Rho]", "نسبة استغللا الخوادم", "مؤشر انتظار الطابور", "مستوى المخاطر الإدارية"],
-                "القيمة المحسوبة": [f"{arrival_rate / (active_c * 6.0):.3f}", f"{(avg_queue / active_c)*100:.1f}%", f"{max(1, int(avg_queue*0.5))} دقيقة", "محسوب وآمن" if platform_upgrade else "حرج وعالي"]
+                "مؤشر الأداء الرياضي": ["كثافة حركة المرور [Rho]", "نسبة استغلال الخوادم", "مؤشر انتظار الطابور", "مستوى المخاطر الإدارية"],
+                "القيمة المحسوبة": [f"{current_rho:.3f}", f"{(avg_queue / active_c)*100:.1f}%", f"{max(1, int(avg_queue*0.5))} دقيقة", "محسوب وآمن" if platform_upgrade else "حرج وعالي"]
             })
             st.dataframe(metrics_df, use_container_width=True, hide_index=True)
+
+        st.markdown("""
+        <div class="stat-law-card">
+            <b>القانون الإحصائي المستخدم (كثافة حركة المرور واستقرار النظام - Traffic Intensity $\\rho$):</b> 
+            تُحسب كثافة الاستخدام بالمعادلة: 
+            <i>$\\rho = \\frac{\\lambda}{c \\cdot \\mu}$</i> 
+            حيث تمثل $\\lambda$ معدل الوصول، $c$ عدد البوابات، و $\\mu$ معدل الخدمة. يشترط إحصائياً أن تكون $\\rho < 1$ لضمان استقرار النظام وعدم تكدس الطابور.
+        </div>
+        """, unsafe_allow_html=True)
 
         # --- DETAILED EXPLANATION UNDER THE PROPOSED SOLUTIONS ---
         st.markdown("""
         <div class="solution-box">
-            <h4 style="color: #0D6EFD !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h4>
+            <h4 style="color: #198754 !important; margin-top: 0;">شرح وتحليل تفصيلي للحلول المقترحة وإسهامها في تحسين الكفاءة:</h4>
             <p><b>1. القضاء التام على أرقام الانتظار الفعلية (تحويل الطوابير المادية إلى رقمية ذاتية):</b></p>
             <p>من خلال تفعيل منصة الخدمة الذاتية الموحدة، يتم تمكين الطالب من إنهاء كافة إجراءات التسجيل ومطابقة الحوالات من جهازه الشخصي دون الحاجة لزيارة مبنى الكلية، مما يصفر عدد تذاكر الانتظار اليومية ويوفر مئات ساعات العمل المهدرة على الموظفين والطلاب.</p>
             
@@ -295,7 +344,7 @@ if run_sim_btn:
         </div>
         """, unsafe_allow_html=True)
 
-        # --- SECTION 5: CHARTS ---
+        # --- SECTION 4: CHARTS ---
         st.markdown("---")
         st.markdown("### الرسوم البيانية لتحليل الضغط وحجم المعاناة")
         
@@ -325,7 +374,7 @@ if run_sim_btn:
 
         st.pyplot(fig)
         
-        # --- SECTION 6: EXPORT ---
+        # --- SECTION 5: EXPORT ---
         st.markdown("---")
         st.markdown("### تحميل تقرير المشروع الرسمي")
         export_df = pd.DataFrame({
