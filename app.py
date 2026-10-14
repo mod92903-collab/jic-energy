@@ -12,49 +12,85 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- MODERN CLEAN CSS (LIGHT BLUE, WHITE & BLACK THEME) ---
+# --- FORCED BRIGHT WHITE, LIGHT BLUE & BLACK CSS THEME ---
 st.markdown("""
     <style>
-    .main {
-        background-color: #f8f9fa;
-        color: #212529;
+    /* Force whole page background to pure white */
+    .stApp {
+        background-color: #FFFFFF !important;
     }
+    .main {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    /* Hero container styling */
     .hero-container {
-        background: #ffffff;
-        border: 1px solid #dee2e6;
+        background: #F8F9FA !important;
+        border: 2px solid #0D6EFD !important;
         padding: 25px;
         border-radius: 12px;
         margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1);
     }
-    .stMetric {
-        background: #ffffff;
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #ced4da;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    
+    /* Control Box container styling */
+    .control-box {
+        background: #F8F9FA !important;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #CED4DA !important;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     }
-    h1, h2, h3, h4, p, label {
+    
+    /* Force text colors to pure black / dark grey for maximum visibility */
+    h1, h2, h3, h4, h5, h6, p, label, span, div {
         color: #212529 !important;
     }
+    
+    /* Specific overrides for headings */
+    .hero-container h1 {
+        color: #0D6EFD !important;
+    }
+    .hero-container h3, .hero-container p {
+        color: #495057 !important;
+    }
+    
+    /* Metric cards styling */
+    .stMetric {
+        background: #FFFFFF !important;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #0D6EFD !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .stMetric label {
+        color: #495057 !important;
+    }
+    .stMetric [data-testid="stMetricValue"] {
+        color: #0D6EFD !important;
+    }
+    
+    /* Buttons styling */
     .stButton button {
-        background-color: #0d6efd;
-        color: white;
+        background-color: #0D6EFD !important;
+        color: #FFFFFF !important;
         border-radius: 6px;
-        font-weight: 600;
+        font-weight: 700;
         border: none;
         padding: 12px 24px;
         width: 100%;
     }
     .stButton button:hover {
-        background-color: #0b5ed7;
+        background-color: #0B5ED7 !important;
+        color: #FFFFFF !important;
     }
-    .control-box {
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #ced4da;
-        margin-bottom: 20px;
+    
+    /* Sliders and text inputs readability */
+    .stSlider label {
+        color: #212529 !important;
+        font-weight: 600 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -62,9 +98,9 @@ st.markdown("""
 # --- HEADER SECTION ---
 st.markdown("""
 <div class="hero-container">
-    <h1 style="margin:0; font-size: 2.2rem; color: #0d6efd !important;">Jeddah International College (JIC)</h1>
-    <h3 style="color: #495057 !important; margin-top: 5px; font-size: 1.3rem;">Smart Campus Energy & Microgrid Intelligence Platform</h3>
-    <p style="color: #6c757d !important; margin-top: 8px; font-size: 1.0rem;">
+    <h1 style="margin:0; font-size: 2.2rem;">Jeddah International College (JIC)</h1>
+    <h3 style="margin-top: 5px; font-size: 1.3rem;">Smart Campus Energy & Microgrid Intelligence Platform</h3>
+    <p style="margin-top: 8px; font-size: 1.0rem;">
         Comprehensive Industrial Engineering Capstone Simulation • Capacity Planning, M/M/c Queueing & Economic Optimization
     </p>
 </div>
@@ -72,32 +108,31 @@ st.markdown("""
 
 # --- TOP HORIZONTAL CONTROLS CONTAINER ---
 st.markdown("### Top Control Panel & Infrastructure Parameters")
-with st.container():
-    st.markdown('<div class="control-box">', unsafe_allow_html=True)
-    
-    col_c1, col_c2, col_c3, col_c4 = st.columns(4)
-    
-    with col_c1:
-        num_buildings = st.slider("Total Active Buildings", 1, 10, 4, 1)
-        num_transformers = st.slider("Substations / Power Units [c]", 1, 150, 30, 5)
-        work_hours = st.slider("Daily Operation Window (Hours)", 4, 16, 8, 1)
-        
-    with col_c2:
-        base_load = st.slider("Base Energy Demand [lambda] (kW)", 50.0, 1500.0, 300.0, 25.0)
-        overload_limit = st.slider("Critical Overload Threshold (kW)", 200, 3000, 850, 50)
-        temp_factor = st.slider("Jeddah Climate / AC Load Factor", 1.0, 2.0, 1.3, 0.1)
-        
-    with col_c3:
-        peak_tariff = st.slider("Peak Electricity Tariff (SAR/kWh)", 0.10, 3.00, 0.48, 0.05)
-        off_peak_tariff = st.slider("Off-Peak Tariff (SAR/kWh)", 0.05, 1.50, 0.22, 0.05)
-        blackout_penalty = st.slider("Blackout / Deficit Penalty (SAR)", 5000, 100000, 25000, 5000)
-        
-    with col_c4:
-        st.markdown("<b>Contingency & Stress Testing</b>", unsafe_allow_html=True)
-        stress_mode = st.checkbox("Enable Emergency Sudden Load Spike", value=False)
-        stress_multiplier = st.slider("Emergency Spike Severity Factor", 1.1, 2.0, 1.4, 0.1)
+st.markdown('<div class="control-box">', unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
+col_c1, col_c2, col_c3, col_c4 = st.columns(4)
+
+with col_c1:
+    num_buildings = st.slider("Total Active Buildings", 1, 10, 4, 1)
+    num_transformers = st.slider("Substations / Power Units [c]", 1, 150, 30, 5)
+    work_hours = st.slider("Daily Operation Window (Hours)", 4, 16, 8, 1)
+    
+with col_c2:
+    base_load = st.slider("Base Energy Demand [lambda] (kW)", 50.0, 1500.0, 300.0, 25.0)
+    overload_limit = st.slider("Critical Overload Threshold (kW)", 200, 3000, 850, 50)
+    temp_factor = st.slider("Jeddah Climate / AC Load Factor", 1.0, 2.0, 1.3, 0.1)
+    
+with col_c3:
+    peak_tariff = st.slider("Peak Electricity Tariff (SAR/kWh)", 0.10, 3.00, 0.48, 0.05)
+    off_peak_tariff = st.slider("Off-Peak Tariff (SAR/kWh)", 0.05, 1.50, 0.22, 0.05)
+    blackout_penalty = st.slider("Blackout / Deficit Penalty (SAR)", 5000, 100000, 25000, 5000)
+    
+with col_c4:
+    st.markdown("<b>Contingency & Stress Testing</b>", unsafe_allow_html=True)
+    stress_mode = st.checkbox("Enable Emergency Sudden Load Spike", value=False)
+    stress_multiplier = st.slider("Emergency Spike Severity Factor", 1.1, 2.0, 1.4, 0.1)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- SIMULATION CORE LOGIC ---
 def run_jic_comprehensive_simulation(hours, base_lam, transformers, limit, ac_factor, buildings, is_stressed, spike_factor):
@@ -237,8 +272,8 @@ if run_btn:
         
         # Plot 1: Demand vs Threshold
         ax1.set_facecolor('#f8f9fa')
-        ax1.plot(timestamps, demands, color='#0d6efd', linewidth=2, label='Total Campus Demand')
-        ax1.axhline(y=overload_limit, color='#dc3545', linestyle='--', linewidth=1.8, label='Overload Limit')
+        ax1.plot(timestamps, demands, color='#0D6EFD', linewidth=2, label='Total Campus Demand')
+        ax1.axhline(y=overload_limit, color='#DC3545', linestyle='--', linewidth=1.8, label='Overload Limit')
         ax1.set_title("Campus Power Load vs. Overload Line", color='#212529', fontsize=12)
         ax1.set_xlabel("Time (Minutes)", color='#212529')
         ax1.set_ylabel("Power (kW)", color='#212529')
@@ -252,7 +287,7 @@ if run_btn:
         c_range = np.arange(max(5, num_transformers - 15), num_transformers + 20, 2)
         simulated_costs = [(c * 1200 + max(0, avg_dem - c * 35) * 8000) for c in c_range]
         ax2.plot(c_range, simulated_costs, color='#198754', linewidth=2.5, marker='o', label='Total Economic Cost (SAR)')
-        ax2.axvline(x=num_transformers, color='#0d6efd', linestyle='--', label=f'Current Selected c = {num_transformers}')
+        ax2.axvline(x=num_transformers, color='#0D6EFD', linestyle='--', label=f'Current Selected c = {num_transformers}')
         ax2.set_title("Economic Lot Sizing & Capacity Optimization Curve", color='#212529', fontsize=12)
         ax2.set_xlabel("Number of Substations [c]", color='#212529')
         ax2.set_ylabel("Total Objective Cost (SAR)", color='#212529')
@@ -281,7 +316,7 @@ if run_btn:
         st.success("Comprehensive JIC Simulation Report Generated Successfully with Full Statistical, Queueing & Economic Metrics.")
 else:
     st.markdown("""
-        <div style="text-align: center; padding: 50px; background: #ffffff; border-radius: 12px; border: 1px solid #ced4da;">
+        <div style="text-align: center; padding: 50px; background: #f8f9fa; border-radius: 12px; border: 1px solid #ced4da;">
             <h3 style="color: #495057;">JIC Microgrid Intelligence Platform Ready</h3>
             <p style="color: #6c757d;">Adjust your campus parameters from the top control panel and click the button to generate the complete engineering dashboard.</p>
         </div>
