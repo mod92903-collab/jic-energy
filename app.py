@@ -7,7 +7,7 @@ import numpy as np
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="JIC Smart Campus Registration & Operations Platform",
+    page_title="منصة محاكاة وإدارة العمليات الأكاديمية - كلية جدة العالمية",
     page_icon="⚡",
     layout="wide"
 )
@@ -17,10 +17,13 @@ st.markdown("""
     <style>
     .stApp {
         background-color: #FFFFFF !important;
+        direction: rtl;
+        text-align: right;
     }
     .main {
         background-color: #FFFFFF !important;
         color: #000000 !important;
+        direction: rtl;
     }
     .hero-container {
         background: #F8F9FA !important;
@@ -29,23 +32,22 @@ st.markdown("""
         border-radius: 12px;
         margin-bottom: 25px;
         box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1);
+        text-align: right;
     }
-    .control-box {
-        background: #F8F9FA !important;
-        padding: 25px;
-        border-radius: 12px;
+    .control-section {
+        background: #FFFFFF !important;
+        padding: 20px;
+        border-radius: 10px;
         border: 1px solid #CED4DA !important;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     h1, h2, h3, h4, h5, h6, p, label, span, div {
         color: #212529 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .hero-container h1 {
         color: #0D6EFD !important;
-    }
-    .hero-container h3, .hero-container p {
-        color: #495057 !important;
     }
     .stMetric {
         background: #FFFFFF !important;
@@ -53,6 +55,7 @@ st.markdown("""
         border-radius: 10px;
         border: 1px solid #0D6EFD !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        text-align: center;
     }
     .stMetric label {
         color: #495057 !important;
@@ -73,50 +76,67 @@ st.markdown("""
         background-color: #0B5ED7 !important;
         color: #FFFFFF !important;
     }
-    .stSlider label {
-        color: #212529 !important;
-        font-weight: 600 !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
 # --- HEADER SECTION ---
 st.markdown("""
 <div class="hero-container">
-    <h1 style="margin:0; font-size: 2.2rem;">Jeddah International College (JIC)</h1>
-    <h3 style="margin-top: 5px; font-size: 1.3rem;">Smart Campus Course Registration & Operational Risk Platform</h3>
+    <h1 style="margin:0; font-size: 2.2rem;">كلية جدة العالمية (JIC)</h1>
+    <h3 style="margin-top: 5px; font-size: 1.3rem;">منصة الذكاء الاصطناعي لمحاكاة وحل مشاكل التسجيل والعمليات الأكاديمية</h3>
     <p style="margin-top: 8px; font-size: 1.0rem;">
-        Eliminating Physical Walk-in Queues (200+ Daily Tickets), Payment Sync Failures, System Freezes & Section Lockouts
+        مشروع تخرج في الهندسة الصناعية • بحوث العمليات ونظرية الطوابير M/M/c • القضاء على الطوابير الفعلية وأخطاء النظام
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- TOP HORIZONTAL CONTROLS CONTAINER ---
-st.markdown("### Operational Parameters & Physical Queue Controls")
-st.markdown('<div class="control-box">', unsafe_allow_html=True)
+# --- ORGANIZED CONTROL PANEL ---
+st.markdown("### لوحة التحكم التشغيلية ومعلمات المحاكاة")
 
-col_c1, col_c2, col_c3, col_c4 = st.columns(4)
+# Section 1: Infrastructure
+st.markdown('<div class="control-section">', unsafe_allow_html=True)
+st.markdown("<b>القسم الأول: البنية التحتية والسعة الاستيعابية للخوادم</b>", unsafe_allow_html=True)
+col1, col2, col3 = st.columns(3)
+with col1:
+    total_students = st.slider("إجمالي عدد طلاب الكلية", 500, 5000, 2500, 250)
+with col2:
+    server_gateways = st.slider("عدد بوابات الخوادم السحابية [c]", 2, 50, 12, 2)
+with col3:
+    registration_window = st.slider("فترة نافذة التسجيل الحرجة (بالساعات)", 12, 72, 24, 6)
+st.markdown('</div>', unsafe_allow_html=True)
 
-with col_c1:
-    total_students = st.slider("Total Student Body Size", 500, 5000, 2500, 250)
-    server_gateways = st.slider("Active Cloud Servers / Gateways [c]", 2, 50, 12, 2)
-    registration_window = st.slider("Peak Registration Window (Hours)", 12, 72, 24, 6)
-    
-with col_c2:
-    arrival_rate = st.slider("Student Arrival Rate [lambda] (Req/Min)", 10.0, 200.0, 45.0, 5.0)
-    system_capacity_limit = st.slider("Server Overload Threshold (Req/Min)", 50, 300, 100, 10)
-    daily_walkins = st.slider("Daily Physical Walk-in Tickets", 50, 400, 200, 10)
-    
-with col_c3:
-    payment_sync_risk = st.slider("Payment Sync Failure Rate (%)", 1, 25, 12, 1)
-    manual_review_cost = st.slider("Cost per Walk-in Visit (SAR)", 50, 500, 150, 25)
-    section_lockout_rate = st.slider("Section Capacity Lockout Risk (%)", 5, 50, 22, 2)
-    
-with col_c4:
-    st.markdown("<b>Platform Solution Mode</b>", unsafe_allow_html=True)
-    platform_upgrade = st.checkbox("Enable JIC Automated Smart Platform", value=True)
-    automation_efficiency = st.slider("Digital Automation & Resolution (%)", 70, 99, 95, 1)
+# Section 2: Demand & Traffic
+st.markdown('<div class="control-section">', unsafe_allow_html=True)
+st.markdown("<b>القسم الثاني: معدلات الطلب والوصول وحركة المرور</b>", unsafe_allow_html=True)
+col4, col5, col6 = st.columns(3)
+with col4:
+    arrival_rate = st.slider("معدل وصول الطلاب [Lambda] (طالب/دقيقة)", 10.0, 200.0, 45.0, 5.0)
+with col5:
+    system_capacity_limit = st.slider("حد التحميل الأقصى للسيرفرات (طلب/دقيقة)", 50, 300, 100, 10)
+with col6:
+    daily_walkins = st.slider("عدد أرقام الانتظار الفعلية للطلاب يومياً بالمبنى", 50, 400, 200, 10)
+st.markdown('</div>', unsafe_allow_html=True)
 
+# Section 3: Operational Risks & Financial Costs
+st.markdown('<div class="control-section">', unsafe_allow_html=True)
+st.markdown("<b>القسم الثالث: نسب المخاطر التشغيلية والتكاليف بالريال السعودي</b>", unsafe_allow_html=True)
+col7, col8, col9 = st.columns(3)
+with col7:
+    payment_sync_risk = st.slider("نسبة أخطاء مزامنة الدفع المعلق (%)", 1, 25, 12, 1)
+with col8:
+    manual_review_cost = st.slider("تكلفة معالجة الحالة الواحدة يدوياً (ريال)", 50, 500, 150, 25)
+with col9:
+    section_lockout_rate = st.slider("مخاطر انغلاق الشعب الدراسية (%)", 5, 50, 22, 2)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Section 4: Smart Upgrade
+st.markdown('<div class="control-section">', unsafe_allow_html=True)
+st.markdown("<b>القسم الرابع: تفعيل المنصة الذكية المقترحة</b>", unsafe_allow_html=True)
+col10, col11 = st.columns(2)
+with col10:
+    platform_upgrade = st.checkbox("تفعيل منصة كلية جدة العالمية الذكية للحلول الآلية", value=True)
+with col11:
+    automation_efficiency = st.slider("كفاءة الأتمتة والربط الرقمي والتصحيح الفوري (%)", 70, 99, 95, 1)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- SIMULATION CORE LOGIC ---
@@ -162,10 +182,10 @@ def run_operational_simulation(window_hours, lam, c_servers, limit, walkins, pay
 # --- EXECUTION BUTTON ---
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
-    run_sim_btn = st.button("Run JIC Operational Solutions Simulation")
+    run_sim_btn = st.button("تشغيل محاكاة وتقييم الأداء التشغيلي")
 
 if run_sim_btn:
-    with st.spinner("Analyzing physical queues, digital bottlenecks, and financial losses..."):
+    with st.spinner("جاري حساب نماذج الطوابير الإحصائية وتحليل التكاليف التشغيلية..."):
         random.seed(101)
         timestamps, queues, crashes, pay_fails, phys_tickets, sec_locks, active_c = run_operational_simulation(
             registration_window, arrival_rate, server_gateways, system_capacity_limit, daily_walkins, payment_sync_risk, section_lockout_rate, platform_upgrade, automation_efficiency
@@ -174,103 +194,116 @@ if run_sim_btn:
         max_queue = max(queues) if queues else 0
         avg_queue = sum(queues) / len(queues) if queues else 0
         
-        # Financial Impact of Pain Points (SAR)
         total_walkin_cost = phys_tickets * manual_review_cost
         system_downtime_loss = crashes * 5000
         total_operational_loss = total_walkin_cost + system_downtime_loss
 
-        # --- SECTION 1: PAIN-POINT EXECUTIVE KPIs ---
-        st.markdown("### Operational Pain-Points & Physical Queue KPIs")
+        # --- SECTION 1: KPIS ---
+        st.markdown("### مؤشرات الأداء التشغيلي الرئيسية للمنصة")
         
         k1, k2, k3, k4, k5, k6 = st.columns(6)
-        k1.metric("Active Gateways [c]", f"{active_c}")
-        k2.metric("Peak Request Queue", f"{max_queue} Req")
-        k3.metric("System Freezes", f"{crashes}")
-        k4.metric("Payment Sync Errors", f"{pay_fails}")
-        k5.metric("Daily Physical Walk-ins", f"{phys_tickets} Tickets")
-        k6.metric("Section Lockouts", f"{sec_locks}")
+        k1.metric("البوابات النشطة [c]", f"{active_c}")
+        k2.metric("أقصى ضغط طابور", f"{max_queue} طلب")
+        k3.metric("حالات تعليق الموقع", f"{crashes}")
+        k4.metric("أخطاء مزامنة الدفع", f"{pay_fails}")
+        k5.metric("تذاكر الانتظار اليومية", f"{phys_tickets} تذكرة")
+        k6.metric("الشعب المغلقة", f"{sec_locks}")
 
-        # --- SECTION 2: FINANCIAL & ADMINISTRATIVE COST ANALYSIS ---
-        st.markdown("### Administrative Cost & Physical Queue Losses (SAR)")
+        # --- SECTION 2: STATISTICAL LAWS MAPPING ---
+        st.markdown("### توثيق القوانين الإحصائية ونظرية الطوابير المستخدمة في النموذج")
+        st.markdown("""
+        تم بناء هذه المحاكاة بالاعتماد على القوانين الرياضية والإحصائية التالية في الهندسة الصناعية وبحوث العمليات:
+        * **1. توزيع بواسون للوصول العشوائي (Poisson Process & Arrival Rate - Lambda):**
+          * *القانون:* $P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}$
+          * *الاستخدام:* يمثل معدل وصول الطلاب الباحثين عن تسجيل المواد في نفس اللحظة خلال فترات الذروة.
+        * **2. نموذج الطوابير متعدد الخوادم (M/M/c Queueing Model):**
+          * *القانون:* يعتمد على عدد الخوادم المتاحة ($c$) ومعدل الخدمة ($\mu$) لتقدير متوسط أوقات الانتظار وطول الطابور ($L_q, W_q$).
+        * **3. معامل كثافة حركة المرور واستقرار النظام (Traffic Intensity - Rho):**
+          * *القانون:* $\\rho = \\frac{\\lambda}{c \\cdot \\mu}$
+          * *الشرط التشغيلي:* يجب أن تكون $\\rho < 1$ لضمان استقرار الخوادم وعدم حدوث انهيار أو تعليق في النظام.
+        * **4. اختبار الفرضيات وحدود التحكم الإحصائية (Statistical Hypothesis Testing):**
+          * *الاستخدام:* مقارنة إجمالي الطلب مع حد السعة الأقصى لتحديد لحظة تجاوز الحدود وإطلاق غرامات وتكاليف التعطل.
+        """)
+
+        # --- SECTION 3: FINANCIAL COST ANALYSIS ---
+        st.markdown("### تحليل التكاليف التشغيلية والخسائر المالية (بالريال السعودي)")
         
         e1, e2, e3 = st.columns(3)
-        e1.metric("Physical Walk-in & Support Cost", f"{total_walkin_cost:,.2f} SAR")
-        e2.metric("System Downtime & Crash Losses", f"{system_downtime_loss:,.2f} SAR")
-        e3.metric("Total Operational Inefficiency Loss", f"{total_operational_loss:,.2f} SAR")
+        e1.metric("تكلفة زيارات الانتظار اليدوية", f"{total_walkin_cost:,.2f} ريال")
+        e2.metric("خسائر تعليق السيرفرات والطوارئ", f"{system_downtime_loss:,.2f} ريال")
+        e3.metric("إجمالي الهدر المالي التشغيلي", f"{total_operational_loss:,.2f} ريال")
 
-        # --- SECTION 3: OPERATIONS RESEARCH MAPPING ---
-        st.markdown("### Operations Research Solutions & System Validation")
+        # --- SECTION 4: TABLES ---
+        st.markdown("### جدول مطابقة المشكلات الواقعية بالحلول الهندسية")
         col_q1, col_q2 = st.columns(2)
         
         with col_q1:
             stat_df = pd.DataFrame({
-                "Operational Problem": ["200+ Daily Physical Walk-ins", "Payment Synchronization", "Website Freezing & Latency", "Section Capacity Lockouts"],
-                "Root Cause [Operations Research]": ["Digital Transaction Failure & Fear", "Lack of Real-time DB Handshake", "Server Capacity Deficit [c]", "Static Course Allocation"],
-                "Proposed Platform Solution": ["Self-Service Digital Portal (0 Walk-ins)", "Automated Webhook & Gateway Sync", "Dynamic Cloud Scalability", "Dynamic Queue Allocation"]
+                "المشكلة الواقعية في الكلية": ["أكثر من 200 رقم انتظار يومياً", "أخطاء مزامنة الدفع وعدم ظهورها", "تعليق الموقع وبطء الاستجابة", "انغلاق الشعب الدراسية بوجه الطالب"],
+                "السبب الجذري بحوث عمليات": ["فشل البوابة الرقمية والخوف الطلابي", "غياب الربط الفوري بقاعدة البيانات", "عجز سعة الخوادم المتزامنة [c]", "تخصيص الشعب بشكل ثابت تقليدي"],
+                "الحل الهندسي عبر المنصة الذكية": ["بوابة ذاتية تسجل 0 زيارة يدوية", "تكامل آلي فوري (Webhook)", "زيادة السعة السحابية الديناميكية", "تخصيص ذكي وتنبؤ مبكر بالطلب"]
             })
             st.dataframe(stat_df, use_container_width=True, hide_index=True)
             
         with col_q2:
             metrics_df = pd.DataFrame({
-                "Performance Parameter": ["Traffic Intensity [rho]", "Server Utilization", "Queue Wait Time Index", "Administrative Risk Rating"],
-                "Evaluated Result": [f"{arrival_rate / (active_c * service_rate if 'service_rate' in locals() else 6.0):.3f}", f"{(avg_queue / active_c)*100:.1f}%", f"{max(1, int(avg_queue*0.5))} Min", "Optimized" if platform_upgrade else "High Exposure"]
+                "مؤشر الأداء الرياضي": ["كثافة حركة المرور [Rho]", "نسبة استغللا الخوادم", "مؤشر انتظار الطابور", "مستوى المخاطر الإدارية"],
+                "القيمة المحسوبة": [f"{arrival_rate / (active_c * 6.0):.3f}", f"{(avg_queue / active_c)*100:.1f}%", f"{max(1, int(avg_queue*0.5))} دقيقة", "محسوب وآمن" if platform_upgrade else "حرج وعالي"]
             })
             st.dataframe(metrics_df, use_container_width=True, hide_index=True)
 
-        # --- SECTION 4: CHARTS ---
+        # --- SECTION 5: CHARTS ---
         st.markdown("---")
-        st.markdown("### Registration Traffic Congestion & Physical Queue Dynamics")
+        st.markdown("### الرسوم البيانية لتحليل الضغط وحجم المعاناة")
         
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
         fig.patch.set_facecolor('#ffffff')
         
-        # Plot 1: Queue pressure
         ax1.set_facecolor('#f8f9fa')
-        ax1.plot(timestamps, queues, color='#0D6EFD', linewidth=2, label='Active Concurrent Requests')
-        ax1.axhline(y=system_capacity_limit, color='#DC3545', linestyle='--', linewidth=1.8, label='Overload Limit')
-        ax1.set_title("Registration Portal Load vs Capacity Limit", color='#212529', fontsize=12)
-        ax1.set_xlabel("Simulation Time (Minutes)", color='#212529')
-        ax1.set_ylabel("Concurrent Requests", color='#212529')
+        ax1.plot(timestamps, queues, color='#0D6EFD', linewidth=2, label='الطلبات المتزامنة الفعلية')
+        ax1.axhline(y=system_capacity_limit, color='#DC3545', linestyle='--', linewidth=1.8, label='حد السعة الأقصى')
+        ax1.set_title("ضغط طلبات التسجيل مقابل السعة الاستيعابية", color='#212529', fontsize=12)
+        ax1.set_xlabel("وقت المحاكاة (بالدقائق)", color='#212529')
+        ax1.set_ylabel("عدد الطلبات", color='#212529')
         ax1.tick_params(colors='#495057')
         ax1.grid(True, linestyle='--', alpha=0.3, color='#ced4da')
         ax1.legend(facecolor='#ffffff', labelcolor='#212529')
         for spine in ax1.spines.values(): spine.set_color('#ced4da')
 
-        # Plot 2: Pain points comparison
         ax2.set_facecolor('#f8f9fa')
-        categories = ['Payment Errors', 'Physical Walk-ins', 'Section Lockouts']
+        categories = ['أخطاء الدفع', 'أرقام الانتظار اليدوية', 'الشعب المغلقة']
         values = [pay_fails, phys_tickets, sec_locks]
         ax2.bar(categories, values, color=['#fd7e14', '#dc3545', '#0dcaf0'], width=0.5)
-        ax2.set_title("Operational Pain-Points Volume", color='#212529', fontsize=12)
-        ax2.set_ylabel("Total Affected Incidents", color='#212529')
+        ax2.set_title("حجم الحالات المتضررة من المشاكل التشغيلية", color='#212529', fontsize=12)
+        ax2.set_ylabel("إجمالي الحالات", color='#212529')
         ax2.tick_params(colors='#495057')
         ax2.grid(True, linestyle='--', alpha=0.3, color='#ced4da')
         for spine in ax2.spines.values(): spine.set_color('#ced4da')
 
         st.pyplot(fig)
         
-        # --- SECTION 5: EXPORT ---
+        # --- SECTION 6: EXPORT ---
         st.markdown("---")
-        st.markdown("### Operational Solution Report Export")
+        st.markdown("### تحميل تقرير المشروع الرسمي")
         export_df = pd.DataFrame({
-            "Time_Min": timestamps,
-            "Queue_Load": queues,
-            "Payment_Failures": pay_fails,
-            "Physical_Walkins": phys_tickets
+            "الوقت_بالدقائق": timestamps,
+            "ضغط_الطابور": queues,
+            "أخطاء_الدفع": pay_fails,
+            "تذاكر_الانتظار": phys_tickets
         })
-        csv_data = export_df.to_csv(index=False).encode('utf-8')
+        csv_data = export_df.to_csv(index=False).encode('utf-8-sig')
         st.download_button(
-            label="Download JIC Operational Solutions & Cost Report (CSV)",
+            label="تحميل تقرير المحاكاة والتحليل المالي بصيغة CSV",
             data=csv_data,
-            file_name="JIC_Operational_Solutions_Report.csv",
+            file_name="JIC_Operational_Simulation_Report.csv",
             mime="text/csv"
         )
         
-        st.success("Operational simulation executed successfully. Physical queues and financial losses are fully mapped.")
+        st.success("تم تنفيذ المحاكاة بنجاح وتوثيق كافة القوانين الإحصائية والمالية باللغة العربية!")
 else:
     st.markdown("""
         <div style="text-align: center; padding: 50px; background: #f8f9fa; border-radius: 12px; border: 1px solid #ced4da;">
-            <h3 style="color: #495057;">JIC Course Registration Operations Platform Ready</h3>
-            <p style="color: #6c757d;">Configure student traffic and physical queue parameters above, then click the simulation button to generate the operational resolution report.</p>
+            <h3 style="color: #495057;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
+            <p style="color: #6c757d;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج والتحليلات الإحصائية.</p>
         </div>
     """, unsafe_allow_html=True)
