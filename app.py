@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- FORCED BRIGHT WHITE, LIGHT BLUE & BLACK CSS THEME ---
+# --- FORCED PURE WHITE & BLACK CSS THEME (NO DARK BOXES) ---
 st.markdown("""
     <style>
     .stApp {
@@ -26,12 +26,12 @@ st.markdown("""
         direction: rtl;
     }
     .hero-container {
-        background: #F8F9FA !important;
+        background: #FFFFFF !important;
         border: 2px solid #0D6EFD !important;
         padding: 25px;
         border-radius: 12px;
         margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.1);
+        box-shadow: 0 4px 15px rgba(13, 110, 253, 0.08);
         text-align: right;
     }
     .control-section {
@@ -40,36 +40,40 @@ st.markdown("""
         border-radius: 10px;
         border: 1px solid #CED4DA !important;
         margin-bottom: 15px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
     .solution-box {
-        background: #F1F8FF !important;
-        border-right: 4px solid #0D6EFD !important;
+        background: #FFFFFF !important;
+        border: 2px solid #0D6EFD !important;
         padding: 20px;
         border-radius: 8px;
         margin-top: 20px;
         margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     h1, h2, h3, h4, h5, h6, p, label, span, div {
-        color: #212529 !important;
+        color: #000000 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .hero-container h1 {
         color: #0D6EFD !important;
     }
+    /* Force all metrics boxes to be pure white with black text and clean border */
     .stMetric {
         background: #FFFFFF !important;
         padding: 15px;
         border-radius: 10px;
         border: 1px solid #0D6EFD !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         text-align: center;
     }
     .stMetric label {
-        color: #495057 !important;
+        color: #333333 !important;
+        font-weight: 600 !important;
     }
     .stMetric [data-testid="stMetricValue"] {
         color: #0D6EFD !important;
+        font-weight: 700 !important;
     }
     .stButton button {
         background-color: #0D6EFD !important;
@@ -83,6 +87,19 @@ st.markdown("""
     .stButton button:hover {
         background-color: #0B5ED7 !important;
         color: #FFFFFF !important;
+    }
+    /* DataFrame tables styling for clean white look */
+    table {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    th {
+        background-color: #F8F9FA !important;
+        color: #000000 !important;
+    }
+    td {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -285,26 +302,26 @@ if run_sim_btn:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
         fig.patch.set_facecolor('#ffffff')
         
-        ax1.set_facecolor('#f8f9fa')
+        ax1.set_facecolor('#ffffff')
         ax1.plot(timestamps, queues, color='#0D6EFD', linewidth=2, label='الطلبات المتزامنة الفعلية')
         ax1.axhline(y=system_capacity_limit, color='#DC3545', linestyle='--', linewidth=1.8, label='حد السعة الأقصى')
-        ax1.set_title("ضغط طلبات التسجيل مقابل السعة الاستيعابية", color='#212529', fontsize=12)
-        ax1.set_xlabel("وقت المحاكاة (بالدقائق)", color='#212529')
-        ax1.set_ylabel("عدد الطلبات", color='#212529')
-        ax1.tick_params(colors='#495057')
-        ax1.grid(True, linestyle='--', alpha=0.3, color='#ced4da')
-        ax1.legend(facecolor='#ffffff', labelcolor='#212529')
-        for spine in ax1.spines.values(): spine.set_color('#ced4da')
+        ax1.set_title("ضغط طلبات التسجيل مقابل السعة الاستيعابية", color='#000000', fontsize=12)
+        ax1.set_xlabel("وقت المحاكاة (بالدقائق)", color='#000000')
+        ax1.set_ylabel("عدد الطلبات", color='#000000')
+        ax1.tick_params(colors='#000000')
+        ax1.grid(True, linestyle='--', alpha=0.3, color='#CED4DA')
+        ax1.legend(facecolor='#ffffff', labelcolor='#000000')
+        for spine in ax1.spines.values(): spine.set_color('#CED4DA')
 
-        ax2.set_facecolor('#f8f9fa')
+        ax2.set_facecolor('#ffffff')
         categories = ['أخطاء الدفع', 'أرقام الانتظار اليدوية', 'الشعب المغلقة']
         values = [pay_fails, phys_tickets, sec_locks]
         ax2.bar(categories, values, color=['#fd7e14', '#dc3545', '#0dcaf0'], width=0.5)
-        ax2.set_title("حجم الحالات المتضررة من المشاكل التشغيلية", color='#212529', fontsize=12)
-        ax2.set_ylabel("إجمالي الحالات", color='#212529')
-        ax2.tick_params(colors='#495057')
-        ax2.grid(True, linestyle='--', alpha=0.3, color='#ced4da')
-        for spine in ax2.spines.values(): spine.set_color('#ced4da')
+        ax2.set_title("حجم الحالات المتضررة من المشاكل التشغيلية", color='#000000', fontsize=12)
+        ax2.set_ylabel("إجمالي الحالات", color='#000000')
+        ax2.tick_params(colors='#000000')
+        ax2.grid(True, linestyle='--', alpha=0.3, color='#CED4DA')
+        for spine in ax2.spines.values(): spine.set_color('#CED4DA')
 
         st.pyplot(fig)
         
@@ -328,8 +345,8 @@ if run_sim_btn:
         st.success("تم تنفيذ المحاكاة بنجاح وتوثيق كافة القوانين الإحصائية والمالية باللغة العربية!")
 else:
     st.markdown("""
-        <div style="text-align: center; padding: 50px; background: #f8F9FA; border-radius: 12px; border: 1px solid #CED4DA;">
-            <h3 style="color: #495057;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
-            <p style="color: #6C757D;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج والتحليلات الإحصائية.</p>
+        <div style="text-align: center; padding: 50px; background: #FFFFFF; border-radius: 12px; border: 1px solid #CED4DA;">
+            <h3 style="color: #000000;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
+            <p style="color: #333333;">قم بضبط إعدادات ومعلمات الأقسام بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج والتحليلات الإحصائية.</p>
         </div>
     """, unsafe_allow_html=True)
