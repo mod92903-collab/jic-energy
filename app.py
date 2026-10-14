@@ -111,7 +111,7 @@ st.markdown("""
     <h1 style="margin:0; font-size: 2.2rem;">كلية جدة العالمية (JIC)</h1>
     <h3 style="margin-top: 5px; font-size: 1.3rem;">منصة بحوث العمليات ونظرية الطوابير لإدارة العمليات الأكاديمية</h3>
     <p style="margin-top: 8px; font-size: 1.0rem;">
-        محاكاة تسجيل الطلاب، قياس الشعب المغلقة للطلاب المتأخرين، تذاكر الانتظار بسبب المشاكل التقنية، والسعة الاستيعابية للخوادم.
+        محاكاة تسجيل المواد والشعب الدراسية، الشعب المغلقة للمتأخرين، تذاكر الانتظار التقنية، والسعة الاستيعابية للخوادم.
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -120,42 +120,42 @@ st.markdown("""
 st.markdown("### لوحة التحكم التشغيلية ومعلمات المحاكاة الرياضية")
 
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
-st.markdown("<b>القسم الأول: أعداد الطلاب والبنية التحتية للخوادم</b>", unsafe_allow_html=True)
+st.markdown("<b>القسم الأول: أعداد الطلاب وتوزيع الشعب الدراسية</b>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 with col1:
     total_students = st.slider("إجمالي عدد طلاب الكلية", 1000, 10000, 4500, 500)
 with col2:
-    server_gateways = st.slider("عدد بوابات الخوادم السحابية المتوازية [c]", 2, 30, 8, 1)
+    students_per_section = st.slider("متوسط سعة الشعبة الدراسية الواحدة (طالب)", 15, 50, 25, 1)
 with col3:
-    daily_registration_hours = st.slider("فترة نافذة التسجيل الحرجة (ساعات يومياً - من 8 ص إلى 4 عصراً)", 1, 8, 3, 1)
+    total_sections_offered = st.slider("إجمالي عدد الشعب المتاحة للمواد", 50, 400, 180, 10)
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
-st.markdown("<b>القسم الثاني: معلمات بحوث العمليات ومعدلات الطلب (Lambda & Capacity)</b>", unsafe_allow_html=True)
+st.markdown("<b>القسم الثاني: معلمات بوابات الخوادم وفترة التسجيل الحرجة</b>", unsafe_allow_html=True)
 col4, col5, col6 = st.columns(3)
 with col4:
-    arrival_rate = st.slider("معدل وصول الطلاب [Lambda] (طالب/دقيقة وقت الذروة)", 10.0, 150.0, float(min(120.0, total_students / 60.0)), 5.0)
+    server_gateways = st.slider("عدد بوابات الخوادم السحابية المتوازية [c]", 2, 30, 8, 1)
 with col5:
     system_capacity_limit = st.slider("حد التحميل الأقصى للسيرفرات (طلب/دقيقة قبل التعليق)", 30, 250, 80, 10)
 with col6:
-    max_section_capacity = st.slider("السعة القصوى للمقاعد المتاحة في الشعب الدراسية", 200, 2000, 800, 50)
+    arrival_rate = st.slider("معدل وصول الطلاب [Lambda] (طالب/دقيقة وقت الذروة)", 10.0, 150.0, float(min(120.0, total_students / 60.0)), 5.0)
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="control-section">', unsafe_allow_html=True)
 st.markdown("<b>القسم الثالث: المخاطر التشغيلية وتكاليف الموظفين والرواتب</b>", unsafe_allow_html=True)
 col7, col8, col9 = st.columns(3)
 with col7:
-    tech_failure_rate = st.slider("نسبة الطلاب الذين واجهوا مشاكل تقنية واضطروا لأخذ تذكرة انتظار (%)", 1, 20, 8, 1)
+    tech_failure_rate = st.slider("نسبة الطلاب الذين واجهوا مشاكل تقنية وأخذوا تذكرة انتظار (%)", 1, 20, 8, 1)
 with col8:
-    staff_count = st.slider("عدد موظفي الدعم وشؤون الطلاب المخصصين للتدقيق اليدوي", 2, 20, 8, 1)
+    staff_count = st.slider("عدد موظفي الدعم وشؤون الطلاب للتدقيق اليدوي", 2, 20, 8, 1)
 with col9:
     staff_monthly_salary = st.slider("متوسط راتب الموظف الشهري (ريال سعودي)", 4000, 15000, 6500, 500)
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- SIMULATION CORE LOGIC ---
-def run_operational_simulation(hours, lam, c_servers, limit, sec_cap, tech_risk, students):
+def run_operational_simulation(lam, c_servers, limit, students, sec_capacity, num_sections, tech_risk):
     env = simpy.Environment()
-    sim_duration = hours * 60
+    sim_duration = 240  # 4 hours peak simulation window
     
     time_stamps = []
     queue_loads = []
@@ -165,13 +165,13 @@ def run_operational_simulation(hours, lam, c_servers, limit, sec_cap, tech_risk,
     section_lockouts = 0
 
     server_pool = simpy.Resource(env, capacity=c_servers)
-    registered_count = 0
+    max_total_seats = sec_capacity * num_sections
 
     def operational_process(env):
-        nonlocal crashes_count, payment_failures, physical_tickets, section_lockouts, registered_count
+        nonlocal crashes_count, payment_failures, physical_tickets, section_lockouts
         while True:
             current_time = env.now
-            peak_factor = 1.0 + 2.5 * np.exp(-((current_time - (sim_duration*0.3))**2) / (2 * (sim_duration*0.15)**2))
+            peak_factor = 1.0 + 2.5 * np.exp(-((current_time - 80)**2) / (2 * (40)**2))
             current_load = lam * peak_factor + random.gauss(0, 3)
             current_load = max(5.0, current_load)
             
@@ -181,19 +181,16 @@ def run_operational_simulation(hours, lam, c_servers, limit, sec_cap, tech_risk,
             if current_load > limit:
                 crashes_count += 1
                 
-            # Realistic calculation based on your clarification
-            new_registrations = int(current_load * 2)
-            registered_count = min(students, registered_count + new_registrations)
-            
-            # Closed sections: students who couldn't register because sections reached capacity
-            if registered_count >= sec_cap:
-                section_lockouts = int((registered_count - sec_cap) * 0.4)
+            # Closed sections: students exceeding available course seats
+            demand_seats = int(students * 0.92)
+            if demand_seats > max_total_seats:
+                section_lockouts = demand_seats - max_total_seats
             else:
-                section_lockouts = 0
+                section_lockouts = int(students * 0.05) # normal late registration lockouts
                 
-            # Walk-in tickets: students who tried to register online but faced technical issues/crashes
-            physical_tickets = int((students - registered_count) * (tech_risk / 100.0) + (crashes_count * 3))
-            payment_failures = int(current_load * 0.1)
+            # Walk-in tickets: students facing technical/system issues during registration
+            physical_tickets = int(students * (tech_risk / 100.0) * (current_load / limit if current_load > limit else 0.4))
+            payment_failures = int(current_load * 0.08)
                 
             yield env.timeout(5)
 
@@ -210,7 +207,7 @@ def generate_report_text(crashes, pay_fails, phys_tickets, sec_locks, total_staf
 1. خلفية المشكلة التشغيلية:
 تواجه عمادة القبول والتسجيل في كلية جدة العالمية تحديات تشغيلية خلال فترات الذروة لتسجيل المواد الدراسية. 
 تتمثل هذه المشاكل في ضغط هائل على البوابة الإلكترونية يترتب عليه تعليق النظام، وتأخر مزامنة عمليات السداد، 
-وتوافد الطلاب الذين واجهتهم مشاكل تقنية لأخذ تذاكر انتظار يدوية، فضلاً عن انغلاق الشعب الدراسية بوجه الطلاب المتأخرين.
+وتوافد الطلاب الذين واجهتهم مشاكل تقنية لأخذ تذاكر انتظار يدوية، فضلاً عن انغلاق الشعب الدراسية (التي تتسع لـ 25 طالب للشعبة) بوجه الطلاب المتأخرين عند امتلاء المقاعد.
 
 2. التحليل الرياضي ونظرية الطوابير (M/M/c):
 تم صياغة المعضلة كنموذج محاكاة لتدفق الطوابير متعدد الخوادم بناءً على معدل الوصول (Lambda) وتوزيع بواسون، 
@@ -219,12 +216,12 @@ def generate_report_text(crashes, pay_fails, phys_tickets, sec_locks, total_staf
 3. النتائج والمؤشرات التشغيلية الحالية:
 - حالات تعليق الموقع وسقوط السيرفرات: {crashes}
 - أخطاء مزامنة الدفع المعلق: {pay_fails}
-- تذاكر الانتظار اليدوية (بسبب المشاكل التقنية): {phys_tickets} تذكرة
-- الشعب الدراسية المغلقة (للطلاب المتأخرين): {sec_locks} طالب متضرر
+- تذاكر الانتظار اليدوية (بسبب الأعطال التقنية): {phys_tickets} تذكرة
+- الشعب الدراسية المغلقة (للطلاب المتضررين لامتلاء المقاعد): {sec_locks} طالب
 - تكلفة الموظفين المخصصين لمعالجة الأزمات: {total_staff_cost:,.2f} ريال سعودي شهرياً
 
 4. الحلول الهندسية الاستراتيجية المقترحة:
-1. إلغاء الطوابير الفعلية: تطوير بوابة خدمة ذاتية رقمية تصفّر عدد تذاكر الانتظار الناتجة عن الأعطال.
+1. إلغاء تذاكر الانتظار التقنية: تطوير بوابة خدمة ذاتية رقمية تصفّر تذاكر الانتظار الناتجة عن الأعطال.
 2. أتمتة مزامنة المدفوعات: ربط البوابة المالية بقاعدة البيانات لتحديث حالة السداد لحظياً عبر Webhook.
 3. التخصيص الاستباقي للشعب: استخدام خوارزميات تحليل البيانات لتوقع الطلب وفتح شعب إضافية مسبقاً للقضاء على انغلاق الشعب.
 """
@@ -239,7 +236,7 @@ if run_sim_btn:
     with st.spinner("جاري حساب نماذج الطوابير الإحصائية وتحليل التكاليف التشغيلية..."):
         random.seed(101)
         timestamps, queues, crashes, pay_fails, phys_tickets, sec_locks = run_operational_simulation(
-            daily_registration_hours, arrival_rate, server_gateways, system_capacity_limit, max_section_capacity, tech_failure_rate, total_students
+            arrival_rate, server_gateways, system_capacity_limit, total_students, students_per_section, total_sections_offered, tech_failure_rate
         )
         
         max_queue = max(queues) if queues else 0
@@ -285,8 +282,8 @@ if run_sim_btn:
         
         with col_q1:
             stat_df = pd.DataFrame({
-                "المشكلة الواقعية في الكلية": ["تذاكر الانتظار بسبب الأعطال التقنية", "أخطاء مزامنة الدفع المعلق", "تعليق الموقع وبطء الاستجابة", "انغلاق الشعب الدراسية لل متأخرين"],
-                "السبب الجذري بحوث عمليات": ["فشل البوابة الرقمية وسقوط السيرفرات", "غياب الربط الفوري بقاعدة البيانات", "عجز سعة الخوادم المتوازية [c]", "امتلاء السعة القصوى للمقاعد"],
+                "المشكلة الواقعية في الكلية": ["تذاكر الانتظار بسبب الأعطال التقنية", "أخطاء مزامنة الدفع المعلق", "تعليق الموقع وبطء الاستجابة", "انغلاق الشعب الدراسية للمتأخرين"],
+                "السبب الجذري بحوث عمليات": ["فشل البوابة الرقمية وسقوط السيرفرات", "غياب الربط الفوري بقاعدة البيانات", "عجز سعة الخوادم المتوازية [c]", "امتلاء سعة الشعب المتاحة (25 طالب)"],
                 "الحل الهندسي عبر المنصة الذكية": ["بوابة ذاتية تصفّر التذاكر التقنية", "تكامل آلي فوري (Webhook)", "زيادة السعة السحابية الديناميكية", "تخصيص ذكي وتنبؤ مبكر بالطلب"]
             })
             st.dataframe(stat_df, use_container_width=True, hide_index=True)
@@ -357,8 +354,8 @@ if run_sim_btn:
         st.success("تم تنفيذ المحاكاة بنجاح وتجهيز التقرير التنفيذي للتحميل الفوري!")
 else:
     st.markdown("""
-        <div style="text-align: center; padding: 50px; background: #FFFFFF; border-radius: 12px; border: 1px solid #0D6EFD;">
+        <div style="text-align: center; padding: 50px; background: #FFFFFF; border-radius: 12px; border: 2px solid #0D6EFD;">
             <h3 style="color: #0D6EFD;">منصة محاكاة العمليات الأكاديمية جاهزة للتشغيل</h3>
-            <p style="color: #333333;">قم بضبط إعدادات ومعلمات لوحة التحكم بالأعلى، ثم اضغط على زر التشغيل لعرض النتائج وتنزيل التقرير الرسمي.</p>
+            <p style="color: #333333;">قم بضبط إعدادات ومعلمات لوحة التحكم بالأعلى (أعداد الطلاب، سعة الشعب، السيرفرات)، ثم اضغط على زر التشغيل لعرض النتائج وتنزيل التقرير الرسمي.</p>
         </div>
     """, unsafe_allow_html=True)
