@@ -7,19 +7,19 @@ import numpy as np
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="JIC Smart Campus Energy Platform",
+    page_title="JIC Smart Campus Energy & Microgrid Intelligence Platform",
     page_icon="⚡",
     layout="wide"
 )
 
-# --- ADVANCED CSS STYLING (ENTERPRISE GRADE) ---
+# --- ADVANCED CSS STYLING ---
 st.markdown("""
     <style>
     .main {
         background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
     }
     .hero-container {
-        background: rgba(22, 27, 34, 0.8);
+        background: rgba(22, 27, 34, 0.85);
         backdrop-filter: blur(12px);
         border: 1px solid rgba(48, 54, 61, 0.9);
         padding: 25px;
@@ -29,23 +29,12 @@ st.markdown("""
     }
     .stMetric {
         background: linear-gradient(145deg, #161b22, #0d1117);
-        padding: 18px;
+        padding: 15px;
         border-radius: 12px;
         border: 1px solid #30363d;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    .stMetric label {
-        color: #8b949e !important;
-        font-weight: 600 !important;
-        font-size: 0.9rem !important;
-    }
-    .stMetric [data-testid="stMetricValue"] {
-        color: #58a6ff !important;
-        font-weight: 700 !important;
     }
     h1, h2, h3 {
         color: #f0f6fc;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .stButton button {
         background: linear-gradient(90deg, #1f6feb 0%, #388bfd 100%);
@@ -54,11 +43,7 @@ st.markdown("""
         font-weight: 600;
         border: none;
         padding: 12px 24px;
-        transition: 0.3s ease;
-    }
-    .stButton button:hover {
-        background: linear-gradient(90deg, #388bfd 0%, #1f6feb 100%);
-        box-shadow: 0 0 15px rgba(56, 139, 253, 0.4);
+        width: 100%;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -69,128 +54,170 @@ st.markdown("""
     <h1 style="margin:0; font-size: 2.2rem;">🏛️ Jeddah International College (JIC)</h1>
     <h3 style="color: #58a6ff; margin-top: 5px; font-size: 1.3rem;">Smart Campus Energy & Microgrid Intelligence Platform</h3>
     <p style="color: #8b949e; margin-top: 8px; font-size: 1.0rem;">
-        Industrial Engineering Capstone Project • <b>Capacity Planning & M/M/c Queueing Models</b> • 
-        Peak-Load Electricity Management & Economic Optimization (SAR)
+        Comprehensive Industrial Engineering Capstone Simulation • <b>Capacity Planning, M/M/c Queueing & Economic Optimization</b>
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 # --- SIDEBAR CONTROLS ---
-st.sidebar.header("🎛️ JIC Campus Infrastructure & Controls")
+st.sidebar.header("🎛️ JIC Infrastructure & Parameters")
 
-with st.sidebar.expander("🏢 Buildings & Operating Hours", expanded=True):
-    num_buildings = st.slider("Active Campus Buildings", 1, 10, 4, 1)
-    num_transformers = st.slider("Substations / Power Units [c]", 1, 100, 25, 5)
+with st.sidebar.expander("🏢 Campus Zoning & Buildings", expanded=True):
+    num_buildings = st.slider("Total Active Buildings", 1, 10, 4, 1)
+    num_transformers = st.slider("Substations / Power Units [c]", 1, 150, 30, 5)
     work_hours = st.slider("Daily Operation Window (Hours)", 4, 16, 8, 1)
 
 with st.sidebar.expander("⚡ Power Demand & Peak Waves", expanded=True):
-    base_load = st.slider("Base Energy Demand [λ] (kW)", 50.0, 1000.0, 250.0, 25.0)
-    overload_limit = st.slider("Critical Overload Threshold (kW)", 200, 2000, 800, 50)
+    base_load = st.slider("Base Energy Demand [λ] (kW)", 50.0, 1500.0, 300.0, 25.0)
+    overload_limit = st.slider("Critical Overload Threshold (kW)", 200, 3000, 850, 50)
+    temp_factor = st.slider("Jeddah Climate / AC Load Factor", 1.0, 2.0, 1.3, 0.1)
 
 with st.sidebar.expander("💰 Tariff & Blackout Penalties (SAR)", expanded=True):
-    peak_tariff = st.slider("Peak Electricity Tariff (SAR/kWh)", 0.10, 2.00, 0.45, 0.05)
-    blackout_penalty = st.slider("Blackout / Deficit Penalty (SAR)", 1000, 50000, 15000, 1000)
+    peak_tariff = st.slider("Peak Electricity Tariff (SAR/kWh)", 0.10, 3.00, 0.48, 0.05)
+    off_peak_tariff = st.slider("Off-Peak Tariff (SAR/kWh)", 0.05, 1.50, 0.22, 0.05)
+    blackout_penalty = st.slider("Blackout / Deficit Penalty (SAR)", 5000, 100000, 25000, 5000)
 
 # --- SIMULATION CORE LOGIC ---
-def run_jic_energy_simulation(hours, base_lam, transformers, limit):
+def run_jic_comprehensive_simulation(hours, base_lam, transformers, limit, ac_factor, buildings):
     env = simpy.Environment()
-    power_units = simpy.Resource(env, capacity=transformers)
+    sim_duration = hours * 60  # minutes
     
-    sim_duration = hours * 60  # convert to minutes
-    demand_history = []
     time_stamps = []
-    overload_events = 0
-    total_energy_consumed = 0.0
+    total_demands = []
+    building_breakdown = {f"Building {i+1}": [] for i in range(buildings)}
+    overload_count = 0
+    total_kwh = 0.0
 
-    def campus_load_generator(env, base_lam):
-        nonlocal overload_events, total_energy_consumed
-        t = 0
+    def campus_process(env):
+        nonlocal overload_count, total_kwh
         while True:
-            current_time = env.now
-            # Sinusoidal peak wave during middle of academic day
-            peak_multiplier = 1.0 + 1.6 * np.sin(np.pi * current_time / sim_duration)
-            current_demand = max(10.0, base_lam * peak_multiplier + random.gauss(0, 20))
+            t = env.now
+            # Sinusoidal academic peak wave combined with Jeddah AC load
+            peak_multiplier = (1.0 + 1.8 * np.sin(np.pi * t / sim_duration)) * ac_factor
+            total_demand = max(20.0, base_lam * peak_multiplier + random.gauss(0, 35))
             
-            demand_history.append(current_demand)
-            time_stamps.append(current_time)
-            total_energy_consumed += current_demand * (1/60) # kWh approx
+            time_stamps.append(t)
+            total_demands.append(total_demand)
+            total_kwh += total_demand * (1/60)
             
-            if current_demand > limit:
-                overload_events += 1
+            if total_demand > limit:
+                overload_count += 1
+                
+            # Distribute load across active buildings
+            load_per_bldg = total_demand / buildings
+            for bldg in building_breakdown:
+                building_breakdown[bldg].append(load_per_bldg * random.uniform(0.9, 1.1))
                 
             yield env.timeout(5) # sample every 5 minutes
 
-    env.process(campus_load_generator(env, base_load))
+    env.process(campus_process(env))
     env.run(until=sim_duration)
-    
-    return demand_history, time_stamps, overload_events, total_energy_consumed
+    return time_stamps, total_demands, building_breakdown, overload_count, total_kwh
 
-# --- EXECUTION BUTTON ---
+# --- EXECUTION ---
 col_b1, col_b2, col_b3 = st.columns([1, 2, 1])
 with col_b2:
-    run_sim_btn = st.button("🚀 Run JIC Campus Energy Simulation", use_container_width=True)
+    run_btn = st.button("🚀 Run Comprehensive JIC Simulation")
 
-if run_sim_btn:
-    with st.spinner("🔄 Simulating JIC microgrid power loads and computing economic impact..."):
-        random.seed(42)
-        demands, timestamps, overloads, total_energy = run_jic_energy_simulation(
-            work_hours, base_load, num_transformers, overload_limit
+if run_btn:
+    with st.spinner("🔄 Running advanced microgrid simulation and compiling engineering reports..."):
+        random.seed(101)
+        timestamps, demands, bldg_data, overloads, total_energy = run_jic_comprehensive_simulation(
+            work_hours, base_load, num_transformers, overload_limit, temp_factor, num_buildings
         )
         
-        max_demand = max(demands) if demands else 0
-        avg_demand = sum(demands) / len(demands) if demands else 0
+        max_dem = max(demands)
+        min_dem = min(demands)
+        avg_dem = sum(demands) / len(demands)
+        std_dem = pd.Series(demands).std()
         
-        # Financial calculations
-        energy_cost = total_energy * peak_tariff
-        penalty_cost = overloads * (blackout_penalty / 10) # weighted penalty distribution
-        total_economic_impact = energy_cost + penalty_cost
+        # Financial & Economic Metrics
+        peak_energy_cost = total_energy * 0.6 * peak_tariff
+        off_peak_energy_cost = total_energy * 0.4 * off_peak_tariff
+        base_energy_cost = peak_energy_cost + off_peak_energy_cost
+        outage_penalty_cost = overloads * (blackout_penalty / 15)
+        total_economic_cost = base_energy_cost + outage_penalty_cost
         
-        reliability_pct = max(0.0, 100.0 - (overloads / len(demands) * 100)) if len(demands) > 0 else 100.0
+        reliability_index = max(0.0, 100.0 - (overloads / len(demands) * 100))
 
-        # --- SECTION 1: EXECUTIVE KPIs ---
-        st.markdown("### 📊 JIC Campus Executive Performance Dashboard")
+        # --- SECTION 1: EXECUTIVE KPIs (Rich Grid) ---
+        st.markdown("### 📊 JIC Executive Performance & Reliability KPIs")
         
-        k1, k2, k3, k4, k5 = st.columns(5)
+        k1, k2, k3, k4, k5, k6 = st.columns(6)
         k1.metric("Active Buildings", f"{num_buildings}")
-        k2.metric("Peak Demand Recorded", f"{max_demand:.1f} kW")
-        k3.metric("Grid Reliability", f"{reliability_pct:.1f}%")
-        k4.metric("Overload Incidents", f"{overloads}")
-        k5.metric("Total Energy (kWh)", f"{total_energy:,.0f}")
+        k2.metric("Substations [c]", f"{num_transformers}")
+        k3.metric("Peak Demand", f"{max_dem:.1f} kW")
+        k4.metric("Average Load", f"{avg_dem:.1f} kW")
+        k5.metric("Grid Reliability", f"{reliability_index:.1f}%")
+        k6.metric("Overload Events", f"{overloads}")
 
-        # --- SECTION 2: ECONOMIC IMPACT ---
-        st.markdown("### 💵 Microgrid Economic & Penalty Analysis")
+        # --- SECTION 2: ECONOMIC & COST OPTIMIZATION ---
+        st.markdown("### 💵 Financial & Economic Optimization Breakdown (SAR)")
         
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Base Energy Consumption Cost", f"{energy_cost:,.2f} SAR")
-        c2.metric("Deficit & Outage Penalty", f"{penalty_cost:,.2f} SAR")
-        c3.metric("Total Objective Economic Function", f"{total_economic_impact:,.2f} SAR")
+        e1, e2, e3, e4 = st.columns(4)
+        e1.metric("Total Energy Consumed", f"{total_energy:,.1f} kWh")
+        e2.metric("Base Tariffs Cost", f"{base_energy_cost:,.2f} SAR")
+        e3.metric("Deficit / Outage Penalties", f"{outage_penalty_cost:,.2f} SAR")
+        e4.metric("Total Objective Cost", f"{total_economic_cost:,.2f} SAR")
 
-        # --- SECTION 3: CHARTS ---
+        # --- SECTION 3: STATISTICAL DISTRIBUTION TABLE ---
+        st.markdown("### 📈 Statistical Load Profile & Variance Analysis")
+        stat_df = pd.DataFrame({
+            "Metric Parameter": ["Maximum Load", "Minimum Load", "Mean Load", "Standard Deviation", "Capacity Margin", "Total Simulation Duration"],
+            "Value": [f"{max_dem:.2f} kW", f"{min_dem:.2f} kW", f"{avg_dem:.2f} kW", f"{std_dem:.2f} kW", f"{(num_transformers * 40) - max_dem:.2f} kW", f"{work_hours * 60} Minutes"]
+        })
+        st.dataframe(stat_df, use_container_width=True, hide_index=True)
+
+        # --- SECTION 4: DETAILED BUILDINGS CONSUMPTION TABLE ---
+        st.markdown("### 🏢 Building-by-Building Peak Consumption Breakdown")
+        bldg_summary = []
+        for bldg, values in bldg_data.items():
+            bldg_summary.append({
+                "Building Name": f"JIC - {bldg}",
+                "Peak Load (kW)": f"{max(values):.1f} kW",
+                "Average Load (kW)": f"{sum(values)/len(values):.1f} kW",
+                "Share of Total (%)": f"{(sum(values)/sum(demands))*100:.1f}%",
+                "Status": "Normal" if max(values) < (overload_limit / num_buildings) else "High Stress"
+            })
+        st.table(pd.DataFrame(bldg_summary))
+
+        # --- SECTION 5: ADVANCED PLOTS ---
         st.markdown("---")
-        st.markdown("### 📈 Campus Power Load vs. Critical Overload Threshold")
+        st.markdown("### 📉 Multi-Dimensional Power Load Dynamics & Thresholds")
         
-        fig, ax = plt.subplots(figsize=(11, 4.5))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 5))
         fig.patch.set_facecolor('#0d1117')
-        ax.set_facecolor('#161b22')
         
-        ax.plot(timestamps, demands, color='#388bfd', linewidth=2, label='Campus Power Demand [kW]')
-        ax.axhline(y=overload_limit, color='#f85149', linestyle='--', linewidth=1.8, label=f'Critical Overload Limit ({overload_limit} kW)')
-        
-        ax.set_xlabel("Simulation Time (Minutes from Opening)", color='#f0f6fc', fontsize=11)
-        ax.set_ylabel("Power Demand (kW)", color='#f0f6fc', fontsize=11)
-        ax.tick_params(colors='#8b949e', labelsize=10)
-        ax.grid(True, linestyle='--', alpha=0.3, color='#30363d')
-        ax.legend(facecolor='#161b22', edgecolor='#30363d', labelcolor='#f0f6fc')
-        for spine in ax.spines.values():
-            spine.set_color('#30363d')
-            
+        # Plot 1: Demand vs Threshold
+        ax1.set_facecolor('#161b22')
+        ax1.plot(timestamps, demands, color='#388bfd', linewidth=2, label='Total Campus Demand')
+        ax1.axhline(y=overload_limit, color='#f85149', linestyle='--', linewidth=1.8, label='Overload Limit')
+        ax1.set_title("Campus Power Load vs. Overload Line", color='#f0f6fc', fontsize=12)
+        ax1.set_xlabel("Time (Minutes)", color='#f0f6fc')
+        ax1.set_ylabel("Power (kW)", color='#f0f6fc')
+        ax1.tick_params(colors='#8b949e')
+        ax1.grid(True, linestyle='--', alpha=0.3, color='#30363d')
+        ax1.legend(facecolor='#161b22', labelcolor='#f0f6fc')
+        for spine in ax1.spines.values(): spine.set_color('#30363d')
+
+        # Plot 2: Building Distribution Bar Chart
+        ax2.set_facecolor('#161b22')
+        bldg_names = list(bldg_data.keys())
+        bldg_peaks = [max(vals) for vals in bldg_data.values()]
+        ax2.bar(bldg_names, bldg_peaks, color='#238636', alpha=0.85)
+        ax2.set_title("Peak Load per Campus Building", color='#f0f6fc', fontsize=12)
+        ax2.set_xlabel("Buildings", color='#f0f6fc')
+        ax2.set_ylabel("Peak Load (kW)", color='#f0f6fc')
+        ax2.tick_params(colors='#8b949e')
+        ax2.grid(True, linestyle='--', alpha=0.3, color='#30363d')
+        for spine in ax2.spines.values(): spine.set_color('#30363d')
+
         st.pyplot(fig)
-        
-        st.success("✨ JIC Campus simulation completed successfully. Ready for your custom adjustments!")
+        st.success("🎉 Comprehensive JIC Simulation Report Generated Successfully with Full Statistical & Economic Metrics!")
 else:
     st.markdown("""
-        <div style="text-align: center; padding: 40px; background: rgba(22, 27, 34, 0.4); border-radius: 12px; border: 1px dashed #30363d;">
-            <h3 style="color: #8b949e;">Platform Ready</h3>
-            <p style="color: #6e7681;">Configure your JIC campus parameters on the sidebar and click the button above to generate the live simulation.</p>
+        <div style="text-align: center; padding: 50px; background: rgba(22, 27, 34, 0.4); border-radius: 12px; border: 1px dashed #30363d;">
+            <h3 style="color: #8b949e;">JIC Microgrid Intelligence Platform Ready</h3>
+            <p style="color: #6e7681;">Adjust your campus parameters from the sidebar and click the button to generate the complete engineering dashboard.</p>
         </div>
     """, unsafe_allow_html=True)
